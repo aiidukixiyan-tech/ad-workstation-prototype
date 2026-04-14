@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聚合投放工作台 - 工作台</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F5F7FA; color: #1E293B; font-size: 14px; min-height: 100vh; }
+
+/* ===== Top Navigation (same as dashboard) ===== */
+.top-nav { background: linear-gradient(90deg, #1E1B4B, #312E81); height: 56px; display: flex; align-items: center; padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.nav-brand { display: flex; align-items: center; gap: 10px; margin-right: 48px; }
+.nav-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+.nav-title { color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+.nav-tabs { display: flex; gap: 4px; flex: 1; }
+.nav-tab-wrap { position: relative; }
+.nav-tab { color: rgba(255,255,255,0.6); padding: 8px 20px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 6px; transition: all 0.2s; position: relative; user-select: none; }
+.nav-tab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+.nav-tab.active { color: #fff; background: rgba(255,255,255,0.12); }
+.nav-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 2px; background: #fff; border-radius: 1px; }
+.nav-dropdown { position: absolute; top: 100%; left: 0; margin-top: 8px; background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); padding: 16px; min-width: 280px; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all 0.2s ease; z-index: 200; }
+.nav-tab-wrap:hover .nav-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-tab-wrap::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 12px; }
+.nav-dropdown-title { font-size: 11px; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding: 0 4px; }
+.nav-dropdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.nav-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: #334155; }
+.nav-dropdown-item:hover { background: #F5F3FF; }
+.nav-dropdown-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.nav-dropdown-icon.juliang { background: linear-gradient(135deg, #7580DF, #959EEB); }
+.nav-dropdown-icon.guangdiantong { background: linear-gradient(135deg, #45A898, #6DC4B4); }
+.nav-dropdown-icon.cili { background: linear-gradient(135deg, #D49560, #E5AD7B); }
+.nav-dropdown-text { font-size: 13px; font-weight: 500; }
+.nav-dropdown-desc { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+.nav-dropdown-list .nav-dropdown-item { grid-column: 1 / -1; }
+.nav-dropdown.wide { min-width: 360px; }
+.nav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.nav-icon { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 18px; position: relative; transition: color 0.2s; }
+.nav-icon:hover { color: #fff; }
+.nav-badge { position: absolute; top: -4px; right: -6px; width: 16px; height: 16px; background: #EF4444; border-radius: 50%; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+.nav-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #818CF8, #C084FC); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ===== Channel Tabs ===== */
+.channel-tabs { background: #fff; padding: 0 24px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; }
+.channel-tab { padding: 14px 24px; cursor: pointer; font-size: 14px; color: #64748B; font-weight: 500; position: relative; transition: color 0.2s; user-select: none; display: flex; align-items: center; gap: 8px; }
+.channel-tab:hover { color: #6366F1; }
+.channel-tab.active { color: #6366F1; font-weight: 600; }
+.channel-tab.active::after { content: ''; position: absolute; bottom: 0; left: 24px; right: 24px; height: 2px; background: #6366F1; border-radius: 1px; }
+.channel-count { background: #F1F5F9; color: #94A3B8; font-size: 12px; padding: 1px 8px; border-radius: 10px; font-weight: 500; }
+.channel-tab.active .channel-count { background: #EEF2FF; color: #6366F1; }
+
+/* ===== Level Tabs + Breadcrumb ===== */
+.level-bar { background: #fff; padding: 12px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+.level-tabs { display: flex; gap: 0; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; }
+.level-tab { padding: 7px 20px; font-size: 13px; color: #64748B; cursor: pointer; background: #fff; border-right: 1px solid #E2E8F0; transition: all 0.2s; user-select: none; font-weight: 500; }
+.level-tab:last-child { border-right: none; }
+.level-tab:hover { color: #6366F1; background: #F5F3FF; }
+.level-tab.active { background: #6366F1; color: #fff; }
+.breadcrumb { font-size: 13px; color: #94A3B8; display: flex; align-items: center; gap: 6px; }
+.breadcrumb a { color: #6366F1; text-decoration: none; cursor: pointer; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb span { color: #475569; font-weight: 500; }
+
+/* ===== Content Area ===== */
+.content { padding: 16px 24px; max-width: 1600px; margin: 0 auto; }
+
+/* ===== Filter Bar ===== */
+.filter-bar { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.filter-input { padding: 6px 12px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; color: #475569; width: 220px; outline: none; transition: border-color 0.2s; }
+.filter-input:focus { border-color: #6366F1; box-shadow: 0 0 0 2px rgba(99,102,241,0.15); }
+.filter-select { padding: 6px 12px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; color: #475569; cursor: pointer; background: #fff; min-width: 110px; outline: none; }
+.filter-select:focus { border-color: #6366F1; }
+.filter-sep { width: 1px; height: 24px; background: #E2E8F0; }
+.filter-actions { display: flex; gap: 8px; margin-left: auto; }
+.btn { padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.2s; border: none; }
+.btn-primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-default { background: #fff; border: 1px solid #E2E8F0; color: #64748B; }
+.btn-default:hover { border-color: #6366F1; color: #6366F1; }
+
+/* ===== Toolbar ===== */
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.toolbar-left { display: flex; gap: 8px; }
+.toolbar-right { display: flex; gap: 8px; }
+.tool-btn { padding: 7px 16px; border: 1px solid #E2E8F0; border-radius: 6px; background: #fff; color: #64748B; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; font-weight: 500; }
+.tool-btn:hover { border-color: #6366F1; color: #6366F1; }
+.tool-btn.primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; border: none; }
+.tool-btn.primary:hover { opacity: 0.9; }
+.tool-btn.warning { color: #D97706; border-color: #FDE68A; }
+.tool-btn.warning:hover { background: #FFFBEB; }
+.dropdown-wrap { position: relative; display: inline-block; }
+.dropdown-menu { position: absolute; top: 100%; left: 0; margin-top: 4px; background: #fff; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); padding: 4px 0; min-width: 160px; z-index: 50; display: none; }
+.dropdown-menu.open { display: block; animation: fadeIn 0.15s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.dropdown-item { padding: 8px 16px; font-size: 13px; color: #475569; cursor: pointer; transition: background 0.15s; }
+.dropdown-item:hover { background: #F5F3FF; color: #6366F1; }
+
+/* ===== Data Table ===== */
+.table-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: #F8FAFC; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #64748B; text-align: left; border-bottom: 1px solid #E2E8F0; white-space: nowrap; }
+tbody td { padding: 14px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #F1F5F9; white-space: nowrap; }
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: #F8FAFC; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr.selected { background: #F5F3FF; }
+.cb-cell { width: 40px; }
+.cb-cell input { accent-color: #6366F1; width: 15px; height: 15px; cursor: pointer; }
+.ad-name { font-weight: 500; color: #1E293B; }
+.ad-name:hover { color: #6366F1; cursor: pointer; }
+.status-tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.status-tag.active { background: #ECFDF5; color: #059669; }
+.status-tag.paused { background: #F3F4F6; color: #6B7280; }
+.status-tag.review { background: #EFF6FF; color: #2563EB; }
+.status-tag.error { background: #FEF2F2; color: #DC2626; }
+.ops-cell { display: flex; gap: 12px; }
+.op-link { color: #6366F1; font-size: 13px; cursor: pointer; font-weight: 500; transition: color 0.15s; white-space: nowrap; }
+.op-link:hover { color: #4F46E5; }
+.op-link.danger { color: #EF4444; }
+.op-link.danger:hover { color: #DC2626; }
+.table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid #F1F5F9; }
+.table-footer-info { font-size: 13px; color: #94A3B8; }
+.pagination { display: flex; gap: 4px; }
+.page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; color: #64748B; cursor: pointer; background: #fff; transition: all 0.2s; }
+.page-btn:hover { border-color: #6366F1; color: #6366F1; }
+.page-btn.active { background: #6366F1; color: #fff; border-color: #6366F1; }
+
+/* ===== Batch Bar ===== */
+.batch-bar { background: #EEF2FF; border-radius: 8px; padding: 10px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; font-size: 13px; color: #4338CA; }
+.batch-bar strong { font-weight: 600; }
+.batch-actions { display: flex; gap: 8px; margin-left: auto; }
+.batch-btn { padding: 5px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500; border: 1px solid #C7D2FE; background: #fff; color: #6366F1; transition: all 0.2s; }
+.batch-btn:hover { background: #6366F1; color: #fff; border-color: #6366F1; }
+.batch-btn.danger { border-color: #FECACA; color: #EF4444; }
+.batch-btn.danger:hover { background: #EF4444; color: #fff; }
+
+/* ===== Drawer ===== */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 150; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer { position: fixed; top: 0; right: -480px; width: 480px; height: 100vh; background: #fff; z-index: 200; box-shadow: -8px 0 30px rgba(0,0,0,0.12); transition: right 0.3s ease; display: flex; flex-direction: column; }
+.drawer.open { right: 0; }
+.drawer-header { padding: 20px 24px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+.drawer-header h3 { font-size: 16px; font-weight: 600; }
+.drawer-close { width: 32px; height: 32px; border: none; background: #F1F5F9; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748B; transition: all 0.2s; font-size: 18px; }
+.drawer-close:hover { background: #E2E8F0; }
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.drawer-section { margin-bottom: 24px; }
+.drawer-section-title { font-size: 13px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.info-item { background: #F8FAFC; border-radius: 8px; padding: 12px; }
+.info-item-label { font-size: 11px; color: #94A3B8; margin-bottom: 4px; }
+.info-item-value { font-size: 15px; font-weight: 600; color: #1E293B; }
+.drawer-actions { display: flex; gap: 8px; padding: 16px 24px; border-top: 1px solid #F1F5F9; }
+.drawer-btn { flex: 1; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; border: none; }
+.drawer-btn.primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; }
+.drawer-btn.default { background: #F1F5F9; color: #64748B; }
+.drawer-btn.danger { background: #FEF2F2; color: #EF4444; }
+.history-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F8FAFC; }
+.history-dot { width: 8px; height: 8px; border-radius: 50%; background: #6366F1; margin-top: 5px; flex-shrink: 0; }
+.history-text { font-size: 13px; color: #475569; }
+.history-time { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+
+/* ===== AI Assistant ===== */
+.ai-fab { position: fixed; bottom: 28px; right: 28px; z-index: 300; }
+.ai-fab-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99,102,241,0.4); transition: transform 0.2s, box-shadow 0.2s; }
+.ai-fab-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(99,102,241,0.5); }
+.ai-fab-btn svg { width: 26px; height: 26px; fill: #fff; }
+.ai-panel { position: absolute; bottom: 68px; right: 0; width: 380px; background: #fff; border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.15); overflow: hidden; display: none; }
+.ai-panel.open { display: block; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.ai-panel-header { background: linear-gradient(135deg, #6366F1, #8B5CF6); padding: 16px 20px; color: #fff; }
+.ai-panel-header h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.ai-panel-header p { font-size: 12px; opacity: 0.8; }
+.ai-panel-body { padding: 16px 20px; max-height: 300px; overflow-y: auto; }
+.ai-msg { display: flex; gap: 10px; margin-bottom: 16px; }
+.ai-msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ai-msg-avatar svg { width: 16px; height: 16px; fill: #fff; }
+.ai-msg-content { background: #F5F3FF; border-radius: 0 12px 12px 12px; padding: 10px 14px; font-size: 13px; color: #334155; line-height: 1.6; }
+.ai-msg-content .hl { color: #6366F1; font-weight: 500; }
+.ai-panel-input { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #F1F5F9; }
+.ai-panel-input input { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; }
+.ai-panel-input input:focus { border-color: #6366F1; }
+.ai-panel-input button { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.ai-panel-input button svg { width: 18px; height: 18px; fill: #fff; }
+
+.num-cell { font-variant-numeric: tabular-nums; }
+.roi-good { color: #059669; font-weight: 600; }
+.roi-warn { color: #D97706; font-weight: 600; }
+.roi-bad { color: #DC2626; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo">聚</div>
+      <div class="nav-title">聚合投放工作台</div>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='dashboard.html'">数据看板</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">数据看板</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="dashboard.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">大</div><div><div class="nav-dropdown-text">大盘看板</div><div class="nav-dropdown-desc">全渠道数据汇总与趋势</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">包</div><div><div class="nav-dropdown-text">包体渠道看板</div><div class="nav-dropdown-desc">iOS / 安卓各渠道数据</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D4899C,#E0A5B4)">素</div><div><div class="nav-dropdown-text">素材效果看板</div><div class="nav-dropdown-desc">素材维度数据分析</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#64748B,#94A3B8)">自</div><div><div class="nav-dropdown-text">自定义看板</div><div class="nav-dropdown-desc">自由搭建个性化数据视图</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab active">工作台</div>
+        <div class="nav-dropdown wide">
+          <div class="nav-dropdown-title">投放渠道</div>
+          <div class="nav-dropdown-grid">
+            <div class="nav-dropdown-item" style="background:#F5F3FF"><div class="nav-dropdown-icon juliang">巨</div><div><div class="nav-dropdown-text">巨量引擎</div><div class="nav-dropdown-desc">字节跳动 · 12个账户</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon guangdiantong">腾</div><div><div class="nav-dropdown-text">腾讯广告</div><div class="nav-dropdown-desc">广点通 · 8个账户</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon cili">磁</div><div><div class="nav-dropdown-text">磁力引擎</div><div class="nav-dropdown-desc">快手 · 6个账户</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">素材管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">素材管线</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#45A898,#6DC4B4)">库</div><div><div class="nav-dropdown-text">素材库</div><div class="nav-dropdown-desc">素材资产管理与检索</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D49560,#E5AD7B)">工</div><div><div class="nav-dropdown-text">素材工具箱</div><div class="nav-dropdown-desc">三视图、热点切片等 AI 工具</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">策略中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">策略中心</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#7580DF,#959EEB)">回</div><div><div class="nav-dropdown-text">虚拟回传策略</div><div class="nav-dropdown-desc">扣传 / 补报 / 档位配置</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EF4444,#F87171)">警</div><div><div class="nav-dropdown-text">告警卡控规则</div><div class="nav-dropdown-desc">异常监控与自动化卡控</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" title="通知">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-avatar" title="张三">张</div>
+    </div>
+  </div>
+
+  <!-- Channel Tabs -->
+  <div class="channel-tabs">
+    <div class="channel-tab active">
+      <span>巨量引擎</span>
+      <span class="channel-count">12</span>
+    </div>
+    <div class="channel-tab">
+      <span>腾讯广告</span>
+      <span class="channel-count">8</span>
+    </div>
+    <div class="channel-tab">
+      <span>磁力引擎</span>
+      <span class="channel-count">6</span>
+    </div>
+  </div>
+
+  <!-- Level Tabs + Breadcrumb -->
+  <div class="level-bar">
+    <div class="level-tabs">
+      <div class="level-tab">账户</div>
+      <div class="level-tab active">广告组</div>
+      <div class="level-tab">广告</div>
+      <div class="level-tab">素材</div>
+    </div>
+    <div class="breadcrumb">
+      <a>全部账户</a> <span>/</span> <span>忍者必须死3-主账户</span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <input class="filter-input" placeholder="搜索广告组名称或ID" />
+      <div class="filter-sep"></div>
+      <select class="filter-select">
+        <option>全部状态</option>
+        <option>投放中</option>
+        <option>已暂停</option>
+        <option>审核中</option>
+      </select>
+      <select class="filter-select">
+        <option>全部优化师</option>
+        <option>张三</option>
+        <option>李四</option>
+        <option>王五</option>
+      </select>
+      <select class="filter-select" style="min-width:180px">
+        <option>2026-04-07 ~ 2026-04-13</option>
+      </select>
+      <div class="filter-actions">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <!-- Batch Bar (shown when items selected) -->
+    <div class="batch-bar" v-if="selectedRows.length > 0">
+      <span>已选择 <strong>{{ selectedRows.length }}</strong> 个广告组</span>
+      <div class="batch-actions">
+        <button class="batch-btn">批量调预算</button>
+        <button class="batch-btn">批量调出价</button>
+        <button class="batch-btn">批量启动</button>
+        <button class="batch-btn danger">批量暂停</button>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="tool-btn primary">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          新建广告组
+        </button>
+        <div class="dropdown-wrap">
+          <button class="tool-btn" @click="batchDropdown = !batchDropdown">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+            批量操作 ▾
+          </button>
+          <div class="dropdown-menu" :class="{ open: batchDropdown }">
+            <div class="dropdown-item">批量暂停</div>
+            <div class="dropdown-item">批量启动</div>
+            <div class="dropdown-item">批量调预算</div>
+            <div class="dropdown-item">批量调出价</div>
+          </div>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button class="tool-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          自定义列
+        </button>
+        <button class="tool-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          导出数据
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-card">
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th class="cb-cell"><input type="checkbox" @change="toggleAll" /></th>
+              <th>广告组名称</th>
+              <th>状态</th>
+              <th>优化师</th>
+              <th>日消耗</th>
+              <th>展示数</th>
+              <th>点击数</th>
+              <th>转化数</th>
+              <th>出价</th>
+              <th>ROI</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in ads" :key="row.id" :class="{ selected: selectedRows.includes(row.id) }">
+              <td class="cb-cell"><input type="checkbox" :checked="selectedRows.includes(row.id)" @change="toggleRow(row.id)" /></td>
+              <td class="ad-name" @click="openDrawer(row)">{{ row.name }}</td>
+              <td><span :class="['status-tag', row.statusClass]">{{ row.status }}</span></td>
+              <td>{{ row.optimizer }}</td>
+              <td class="num-cell">¥{{ row.spend }}</td>
+              <td class="num-cell">{{ row.impressions }}</td>
+              <td class="num-cell">{{ row.clicks }}</td>
+              <td class="num-cell">{{ row.conversions }}</td>
+              <td class="num-cell">¥{{ row.bid }}</td>
+              <td :class="row.roiClass">{{ row.roi }}</td>
+              <td>
+                <div class="ops-cell">
+                  <span class="op-link" v-if="row.status==='投放中'" @click.stop>暂停</span>
+                  <span class="op-link" v-if="row.status==='已暂停'" @click.stop>启动</span>
+                  <span class="op-link" @click.stop>调预算</span>
+                  <span class="op-link" @click.stop>调出价</span>
+                  <span class="op-link" style="color:#94A3B8" @click.stop>更多▾</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <div class="table-footer-info">共 {{ ads.length }} 个广告组</div>
+        <div class="pagination">
+          <div class="page-btn">‹</div>
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer Overlay -->
+  <div class="drawer-overlay" :class="{ open: drawerOpen }" @click="drawerOpen = false"></div>
+  <!-- Drawer -->
+  <div class="drawer" :class="{ open: drawerOpen }">
+    <div class="drawer-header">
+      <h3>{{ drawerData.name || '' }}</h3>
+      <button class="drawer-close" @click="drawerOpen = false">✕</button>
+    </div>
+    <div class="drawer-body" v-if="drawerData.name">
+      <div class="drawer-section">
+        <div class="drawer-section-title">核心指标</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-item-label">日消耗</div>
+            <div class="info-item-value">¥{{ drawerData.spend }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">转化数</div>
+            <div class="info-item-value">{{ drawerData.conversions }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">ROI</div>
+            <div class="info-item-value" :class="drawerData.roiClass">{{ drawerData.roi }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">出价</div>
+            <div class="info-item-value">¥{{ drawerData.bid }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">基本信息</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-item-label">状态</div>
+            <div class="info-item-value"><span :class="['status-tag', drawerData.statusClass]">{{ drawerData.status }}</span></div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">优化师</div>
+            <div class="info-item-value">{{ drawerData.optimizer }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">日预算</div>
+            <div class="info-item-value">¥{{ drawerData.budget || '50,000' }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">创建时间</div>
+            <div class="info-item-value">2026-04-08</div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">操作记录</div>
+        <div class="history-item">
+          <div class="history-dot"></div>
+          <div>
+            <div class="history-text">张三 调整出价 ¥42.0 → ¥45.0</div>
+            <div class="history-time">2026-04-13 14:32</div>
+          </div>
+        </div>
+        <div class="history-item">
+          <div class="history-dot" style="background:#10B981"></div>
+          <div>
+            <div class="history-text">系统 启动广告组</div>
+            <div class="history-time">2026-04-12 09:15</div>
+          </div>
+        </div>
+        <div class="history-item">
+          <div class="history-dot" style="background:#F59E0B"></div>
+          <div>
+            <div class="history-text">李四 调整日预算 ¥30,000 → ¥50,000</div>
+            <div class="history-time">2026-04-11 16:48</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-actions" v-if="drawerData.name">
+      <button class="drawer-btn primary">调预算</button>
+      <button class="drawer-btn default">调出价</button>
+      <button class="drawer-btn danger" v-if="drawerData.status==='投放中'">暂停</button>
+      <button class="drawer-btn primary" v-if="drawerData.status==='已暂停'" style="background:linear-gradient(135deg,#10B981,#34D399)">启动</button>
+    </div>
+  </div>
+
+  <!-- AI Assistant -->
+  <div class="ai-fab">
+    <div class="ai-panel" :class="{ open: aiOpen }">
+      <div class="ai-panel-header">
+        <h3>AI 投放助手</h3>
+        <p>实时监控 · 智能分析 · 操作建议</p>
+      </div>
+      <div class="ai-panel-body">
+        <div class="ai-msg">
+          <div class="ai-msg-avatar">
+            <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+          </div>
+          <div class="ai-msg-content">
+            当前账户下有 <span class="hl">2个广告组</span> ROI 低于盈亏线（1.2），分别是「忍者3-横版开屏-0411」和「忍者3-竖版落地页-0409」。<br><br>建议暂停或降低出价，需要我帮你 <span class="hl" style="cursor:pointer">批量暂停</span> 吗？
+          </div>
+        </div>
+      </div>
+      <div class="ai-panel-input">
+        <input placeholder="例如：帮我暂停ROI低于1的广告组" />
+        <button><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+    <button class="ai-fab-btn" @click="aiOpen = !aiOpen">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue;
+createApp({
+  data() {
+    return {
+      aiOpen: false,
+      batchDropdown: false,
+      drawerOpen: false,
+      drawerData: {},
+      selectedRows: [],
+      ads: [
+        { id:1, name:'忍者3-真人实拍-0413', status:'投放中', statusClass:'active', optimizer:'张三', spend:'18,456', impressions:'234,567', clicks:'12,345', conversions:'567', bid:'45.00', roi:'2.35', roiClass:'roi-good', budget:'50,000' },
+        { id:2, name:'忍者3-动画CG-0412', status:'投放中', statusClass:'active', optimizer:'张三', spend:'15,230', impressions:'198,340', clicks:'9,876', conversions:'445', bid:'42.00', roi:'2.12', roiClass:'roi-good', budget:'40,000' },
+        { id:3, name:'忍者3-横版开屏-0411', status:'投放中', statusClass:'active', optimizer:'李四', spend:'12,890', impressions:'156,780', clicks:'7,654', conversions:'234', bid:'55.00', roi:'1.15', roiClass:'roi-bad', budget:'30,000' },
+        { id:4, name:'忍者3-竖版信息流-0410', status:'投放中', statusClass:'active', optimizer:'李四', spend:'9,670', impressions:'123,450', clicks:'6,234', conversions:'312', bid:'38.00', roi:'1.88', roiClass:'roi-good', budget:'25,000' },
+        { id:5, name:'忍者3-竖版落地页-0409', status:'投放中', statusClass:'active', optimizer:'王五', spend:'7,340', impressions:'89,670', clicks:'4,567', conversions:'123', bid:'52.00', roi:'0.95', roiClass:'roi-bad', budget:'20,000' },
+        { id:6, name:'忍者3-达人混剪-0408', status:'已暂停', statusClass:'paused', optimizer:'王五', spend:'0', impressions:'0', clicks:'0', conversions:'0', bid:'40.00', roi:'-', roiClass:'', budget:'15,000' },
+        { id:7, name:'新项目1-竖版信息流-0412', status:'投放中', statusClass:'active', optimizer:'张三', spend:'5,670', impressions:'67,890', clicks:'3,456', conversions:'167', bid:'35.00', roi:'1.72', roiClass:'roi-good', budget:'20,000' },
+        { id:8, name:'新项目1-横版开屏-0411', status:'审核中', statusClass:'review', optimizer:'李四', spend:'0', impressions:'0', clicks:'0', conversions:'0', bid:'48.00', roi:'-', roiClass:'', budget:'30,000' },
+        { id:9, name:'新项目1-品牌曝光-0410', status:'投放中', statusClass:'active', optimizer:'王五', spend:'3,450', impressions:'45,670', clicks:'2,345', conversions:'89', bid:'40.00', roi:'1.45', roiClass:'roi-warn', budget:'15,000' },
+        { id:10, name:'新项目2-预热测试-0413', status:'投放中', statusClass:'active', optimizer:'张三', spend:'1,230', impressions:'15,670', clicks:'890', conversions:'34', bid:'36.00', roi:'1.58', roiClass:'roi-good', budget:'10,000' },
+      ]
+    }
+  },
+  methods: {
+    toggleAll(e) {
+      this.selectedRows = e.target.checked ? this.ads.map(a => a.id) : [];
+    },
+    toggleRow(id) {
+      const idx = this.selectedRows.indexOf(id);
+      if (idx >= 0) this.selectedRows.splice(idx, 1);
+      else this.selectedRows.push(id);
+    },
+    openDrawer(row) {
+      this.drawerData = { ...row };
+      this.drawerOpen = true;
+    }
+  }
+}).mount('#app');
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dropdown-wrap')) {
+    const app = document.querySelector('#app').__vue_app__;
+  }
+});
+</script>
+</body>
+</html>

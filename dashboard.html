@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聚合投放工作台 - 数据看板</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F5F7FA; color: #1E293B; font-size: 14px; min-height: 100vh; }
+
+/* ===== Top Navigation ===== */
+.top-nav { background: linear-gradient(90deg, #1E1B4B, #312E81); height: 56px; display: flex; align-items: center; padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.nav-brand { display: flex; align-items: center; gap: 10px; margin-right: 48px; }
+.nav-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+.nav-title { color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+.nav-tabs { display: flex; gap: 4px; flex: 1; }
+.nav-tab-wrap { position: relative; }
+.nav-tab { color: rgba(255,255,255,0.6); padding: 8px 20px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 6px; transition: all 0.2s; position: relative; user-select: none; }
+.nav-tab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+.nav-tab.active { color: #fff; background: rgba(255,255,255,0.12); }
+.nav-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 2px; background: #fff; border-radius: 1px; }
+/* ===== Nav Dropdown ===== */
+.nav-dropdown { position: absolute; top: 100%; left: 0; margin-top: 8px; background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); padding: 16px; min-width: 280px; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all 0.2s ease; z-index: 200; }
+.nav-tab-wrap:hover .nav-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-tab-wrap::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 12px; }
+.nav-dropdown-title { font-size: 11px; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding: 0 4px; }
+.nav-dropdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.nav-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: #334155; }
+.nav-dropdown-item:hover { background: #F5F3FF; }
+.nav-dropdown-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.nav-dropdown-icon.juliang { background: linear-gradient(135deg, #7580DF, #959EEB); }
+.nav-dropdown-icon.guangdiantong { background: linear-gradient(135deg, #45A898, #6DC4B4); }
+.nav-dropdown-icon.cili { background: linear-gradient(135deg, #D49560, #E5AD7B); }
+.nav-dropdown-text { font-size: 13px; font-weight: 500; }
+.nav-dropdown-desc { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+.nav-dropdown-list .nav-dropdown-item { grid-column: 1 / -1; }
+.nav-dropdown.wide { min-width: 360px; }
+.nav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.nav-icon { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 18px; position: relative; transition: color 0.2s; }
+.nav-icon:hover { color: #fff; }
+.nav-badge { position: absolute; top: -4px; right: -6px; width: 16px; height: 16px; background: #EF4444; border-radius: 50%; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+.nav-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #818CF8, #C084FC); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ===== Sub Tabs ===== */
+.sub-tabs { background: #fff; padding: 0 24px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; }
+.sub-tab { padding: 14px 20px; cursor: pointer; font-size: 14px; color: #64748B; font-weight: 500; position: relative; transition: color 0.2s; user-select: none; }
+.sub-tab:hover { color: #6366F1; }
+.sub-tab.active { color: #6366F1; font-weight: 600; }
+.sub-tab.active::after { content: ''; position: absolute; bottom: 0; left: 20px; right: 20px; height: 2px; background: #6366F1; border-radius: 1px; }
+
+/* ===== Content Area ===== */
+.content { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+/* ===== Filter Bar ===== */
+.filter-bar { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.time-btns { display: flex; gap: 0; border: 1px solid #E2E8F0; border-radius: 6px; overflow: hidden; }
+.time-btn { padding: 6px 14px; font-size: 13px; cursor: pointer; border: none; background: #fff; color: #64748B; transition: all 0.2s; user-select: none; border-right: 1px solid #E2E8F0; }
+.time-btn:last-child { border-right: none; }
+.time-btn:hover { color: #6366F1; background: #F5F3FF; }
+.time-btn.active { background: #6366F1; color: #fff; }
+.filter-sep { width: 1px; height: 24px; background: #E2E8F0; }
+.filter-select { padding: 6px 12px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; color: #475569; cursor: pointer; background: #fff; min-width: 120px; }
+.filter-select:focus { border-color: #6366F1; outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,0.15); }
+.filter-channel { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #475569; }
+.filter-channel label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.filter-channel input[type="checkbox"] { accent-color: #6366F1; }
+.refresh-btn { margin-left: auto; padding: 6px 16px; background: #fff; border: 1px solid #E2E8F0; border-radius: 6px; color: #64748B; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+.refresh-btn:hover { border-color: #6366F1; color: #6366F1; }
+
+/* ===== Metric Cards ===== */
+.metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+.metric-card { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.3s, transform 0.2s; cursor: default; position: relative; overflow: hidden; }
+.metric-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.10); transform: translateY(-1px); }
+.metric-card::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; border-radius: 0 4px 4px 0; }
+.metric-card:nth-child(1)::before { background: #6366F1; }
+.metric-card:nth-child(2)::before { background: #06B6D4; }
+.metric-card:nth-child(3)::before { background: #EC4899; }
+.metric-card:nth-child(4)::before { background: #10B981; }
+.metric-card:nth-child(5)::before { background: #F59E0B; }
+.metric-card:nth-child(6)::before { background: #8B5CF6; }
+.metric-label { font-size: 12px; color: #94A3B8; font-weight: 500; margin-bottom: 8px; }
+.metric-value { font-size: 24px; font-weight: 700; color: #1E293B; line-height: 1.2; }
+.metric-dual { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.metric-sub { font-size: 12px; color: #94A3B8; }
+.metric-sub span { color: #64748B; font-weight: 500; }
+.metric-change { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 500; margin-top: 6px; padding: 2px 6px; border-radius: 4px; }
+.metric-change.up { color: #059669; background: #ECFDF5; }
+.metric-change.down { color: #DC2626; background: #FEF2F2; }
+
+/* ===== Section Headers ===== */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-size: 15px; font-weight: 600; color: #1E293B; }
+
+/* ===== Chart Area ===== */
+.chart-card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.chart-container { height: 320px; }
+
+/* ===== Data Table ===== */
+.table-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+.table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #F1F5F9; }
+.table-toolbar-left { font-size: 15px; font-weight: 600; color: #1E293B; }
+.table-toolbar-right { display: flex; gap: 8px; }
+.tool-btn { padding: 6px 14px; border: 1px solid #E2E8F0; border-radius: 6px; background: #fff; color: #64748B; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+.tool-btn:hover { border-color: #6366F1; color: #6366F1; }
+.tool-btn.primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; border: none; }
+.tool-btn.primary:hover { opacity: 0.9; }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: #F8FAFC; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #64748B; text-align: left; border-bottom: 1px solid #E2E8F0; white-space: nowrap; position: sticky; top: 0; }
+thead th.group-media { background: #EFF6FF; color: #3B82F6; }
+thead th.group-reyun { background: #ECFDF5; color: #059669; }
+thead th.group-diff { background: #FFFBEB; color: #D97706; }
+tbody td { padding: 12px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #F1F5F9; white-space: nowrap; }
+tbody tr:hover { background: #F8FAFC; }
+tbody tr:last-child td { border-bottom: none; }
+.channel-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.channel-tag.juliang { background: #ECEFFE; color: #7580DF; }
+.channel-tag.guangdiantong { background: #E8F6F3; color: #45A898; }
+.channel-tag.cili { background: #FDF1E6; color: #D49560; }
+.diff-cell { font-weight: 500; }
+.diff-cell.positive { color: #DC2626; }
+.diff-cell.negative { color: #059669; }
+.table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid #F1F5F9; }
+.table-footer-info { font-size: 13px; color: #94A3B8; }
+.pagination { display: flex; gap: 4px; }
+.page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; color: #64748B; cursor: pointer; background: #fff; transition: all 0.2s; }
+.page-btn:hover { border-color: #6366F1; color: #6366F1; }
+.page-btn.active { background: #6366F1; color: #fff; border-color: #6366F1; }
+
+/* ===== AI Assistant ===== */
+.ai-fab { position: fixed; bottom: 28px; right: 28px; z-index: 200; }
+.ai-fab-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99,102,241,0.4); transition: transform 0.2s, box-shadow 0.2s; }
+.ai-fab-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(99,102,241,0.5); }
+.ai-fab-btn svg { width: 26px; height: 26px; fill: #fff; }
+.ai-panel { position: absolute; bottom: 68px; right: 0; width: 380px; background: #fff; border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.15); overflow: hidden; display: none; }
+.ai-panel.open { display: block; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.ai-panel-header { background: linear-gradient(135deg, #6366F1, #8B5CF6); padding: 16px 20px; color: #fff; }
+.ai-panel-header h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.ai-panel-header p { font-size: 12px; opacity: 0.8; }
+.ai-panel-body { padding: 16px 20px; max-height: 320px; overflow-y: auto; }
+.ai-msg { display: flex; gap: 10px; margin-bottom: 16px; }
+.ai-msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ai-msg-avatar svg { width: 16px; height: 16px; fill: #fff; }
+.ai-msg-content { background: #F5F3FF; border-radius: 0 12px 12px 12px; padding: 10px 14px; font-size: 13px; color: #334155; line-height: 1.6; }
+.ai-msg-content .highlight { color: #6366F1; font-weight: 500; }
+.ai-panel-input { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #F1F5F9; }
+.ai-panel-input input { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; }
+.ai-panel-input input:focus { border-color: #6366F1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+.ai-panel-input button { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.ai-panel-input button svg { width: 18px; height: 18px; fill: #fff; }
+
+/* ===== Group header row ===== */
+.group-header-row th { text-align: center; font-size: 12px; font-weight: 600; padding: 6px 14px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo">聚</div>
+      <div class="nav-title">聚合投放工作台</div>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab-wrap">
+        <div class="nav-tab active">数据看板</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">数据看板</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item" style="background:#F5F3FF"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">大</div><div><div class="nav-dropdown-text">大盘看板</div><div class="nav-dropdown-desc">全渠道数据汇总与趋势</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">包</div><div><div class="nav-dropdown-text">包体渠道看板</div><div class="nav-dropdown-desc">iOS / 安卓各渠道数据</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D4899C,#E0A5B4)">素</div><div><div class="nav-dropdown-text">素材效果看板</div><div class="nav-dropdown-desc">素材维度数据分析</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#64748B,#94A3B8)">自</div><div><div class="nav-dropdown-text">自定义看板</div><div class="nav-dropdown-desc">自由搭建个性化数据视图</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='workstation.html'">工作台</div>
+        <div class="nav-dropdown wide">
+          <div class="nav-dropdown-title">投放渠道</div>
+          <div class="nav-dropdown-grid">
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon juliang">巨</div><div><div class="nav-dropdown-text">巨量引擎</div><div class="nav-dropdown-desc">字节跳动 · 12个账户</div></div></a>
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon guangdiantong">腾</div><div><div class="nav-dropdown-text">腾讯广告</div><div class="nav-dropdown-desc">广点通 · 8个账户</div></div></a>
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon cili">磁</div><div><div class="nav-dropdown-text">磁力引擎</div><div class="nav-dropdown-desc">快手 · 6个账户</div></div></a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">素材管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">素材管线</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#45A898,#6DC4B4)">库</div><div><div class="nav-dropdown-text">素材库</div><div class="nav-dropdown-desc">素材资产管理与检索</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D49560,#E5AD7B)">工</div><div><div class="nav-dropdown-text">素材工具箱</div><div class="nav-dropdown-desc">三视图、热点切片等 AI 工具</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">策略中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">策略中心</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#7580DF,#959EEB)">回</div><div><div class="nav-dropdown-text">虚拟回传策略</div><div class="nav-dropdown-desc">扣传 / 补报 / 档位配置</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EF4444,#F87171)">警</div><div><div class="nav-dropdown-text">告警卡控规则</div><div class="nav-dropdown-desc">异常监控与自动化卡控</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" title="通知">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-avatar" title="张三">张</div>
+    </div>
+  </div>
+
+  <!-- Sub Tabs -->
+  <div class="sub-tabs">
+    <div class="sub-tab active">大盘看板</div>
+    <div class="sub-tab">包体渠道看板</div>
+    <div class="sub-tab">素材效果看板</div>
+    <div class="sub-tab">自定义看板</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="time-btns">
+        <div class="time-btn">今日</div>
+        <div class="time-btn">昨日</div>
+        <div class="time-btn active">近7天</div>
+        <div class="time-btn">近14天</div>
+        <div class="time-btn">近30天</div>
+      </div>
+      <div class="filter-sep"></div>
+      <select class="filter-select">
+        <option>全部项目</option>
+        <option selected>忍者必须死3</option>
+        <option>新项目1</option>
+        <option>新项目2</option>
+      </select>
+      <div class="filter-sep"></div>
+      <div class="filter-channel">
+        <span style="color:#94A3B8">渠道：</span>
+        <label><input type="checkbox" checked> 巨量引擎</label>
+        <label><input type="checkbox" checked> 腾讯广告</label>
+        <label><input type="checkbox" checked> 磁力引擎</label>
+      </div>
+      <button class="refresh-btn">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        刷新数据
+      </button>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card" v-for="m in metrics" :key="m.label">
+        <div class="metric-label">{{ m.label }}</div>
+        <div class="metric-value">{{ m.value }}</div>
+        <div class="metric-dual" v-if="m.media">
+          <div class="metric-sub">媒体 <span>{{ m.media }}</span></div>
+          <div class="metric-sub" style="margin-left:4px">热云 <span>{{ m.reyun }}</span></div>
+        </div>
+        <div :class="['metric-change', m.changeDir]">
+          {{ m.changeDir === 'up' ? '↑' : '↓' }} 环比 {{ m.change }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Trend Chart -->
+    <div class="chart-card">
+      <div class="section-header">
+        <div class="section-title">趋势概览</div>
+      </div>
+      <div id="trendChart" class="chart-container"></div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="table-toolbar-left">数据明细</div>
+        <div class="table-toolbar-right">
+          <button class="tool-btn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            自定义列
+          </button>
+          <button class="tool-btn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            导出数据
+          </button>
+          <button class="tool-btn primary">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+            导入飞书文档
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr class="group-header-row">
+              <th colspan="3" style="background:#F8FAFC;color:#64748B">基础信息</th>
+              <th colspan="3" class="group-media">媒体平台数据</th>
+              <th colspan="3" class="group-reyun">热云归因数据</th>
+              <th colspan="2" class="group-diff">数据差异</th>
+            </tr>
+            <tr>
+              <th>项目</th>
+              <th>渠道</th>
+              <th>账户</th>
+              <th class="group-media">消耗</th>
+              <th class="group-media">转化数</th>
+              <th class="group-media">ROI</th>
+              <th class="group-reyun">消耗</th>
+              <th class="group-reyun">转化数</th>
+              <th class="group-reyun">ROI</th>
+              <th class="group-diff">消耗差异</th>
+              <th class="group-diff">转化差异</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in tableData" :key="row.id">
+              <td style="font-weight:500">{{ row.project }}</td>
+              <td><span :class="['channel-tag', row.channelClass]">{{ row.channel }}</span></td>
+              <td>{{ row.account }}</td>
+              <td>¥{{ row.mediaSpend }}</td>
+              <td>{{ row.mediaConv }}</td>
+              <td>{{ row.mediaRoi }}</td>
+              <td>¥{{ row.reyunSpend }}</td>
+              <td>{{ row.reyunConv }}</td>
+              <td>{{ row.reyunRoi }}</td>
+              <td :class="['diff-cell', row.spendDiffClass]">{{ row.spendDiff }}</td>
+              <td :class="['diff-cell', row.convDiffClass]">{{ row.convDiff }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <div class="table-footer-info">共 24 条记录</div>
+        <div class="pagination">
+          <div class="page-btn">‹</div>
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">3</div>
+          <div class="page-btn">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Assistant -->
+  <div class="ai-fab">
+    <div class="ai-panel" :class="{ open: aiOpen }">
+      <div class="ai-panel-header">
+        <h3>AI 投放助手</h3>
+        <p>实时监控 · 智能分析 · 操作建议</p>
+      </div>
+      <div class="ai-panel-body">
+        <div class="ai-msg">
+          <div class="ai-msg-avatar">
+            <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+          </div>
+          <div class="ai-msg-content">
+            今日有 <span class="highlight">3个账户</span> 消耗异常偏高，其中「忍者3-巨量-主账户」消耗超出预算 <span class="highlight">23%</span>，建议关注并适当调整出价。
+          </div>
+        </div>
+        <div class="ai-msg">
+          <div class="ai-msg-avatar">
+            <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+          </div>
+          <div class="ai-msg-content">
+            「新项目1」磁力引擎渠道近3天 ROI 持续下降（1.8→1.5→1.2），已低于盈亏线。建议暂停低效广告组或降低出价。<br><br>
+            <span style="color:#6366F1;cursor:pointer;font-weight:500">→ 查看详情</span>
+          </div>
+        </div>
+      </div>
+      <div class="ai-panel-input">
+        <input placeholder="输入问题，例如：昨天ROI最高的广告组是哪个？" />
+        <button>
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="ai-fab-btn" @click="aiOpen = !aiOpen" :title="aiOpen ? '收起AI助手' : '展开AI助手'">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue;
+createApp({
+  data() {
+    return {
+      aiOpen: false,
+      metrics: [
+        { label: '总消耗', value: '¥123.4W', media: '¥123.4W', reyun: '¥121.8W', change: '+12.3%', changeDir: 'up' },
+        { label: '总转化', value: '8,456', media: '8,456', reyun: '8,230', change: '+5.7%', changeDir: 'up' },
+        { label: '平均ROI', value: '1.85', media: null, reyun: null, change: '-2.1%', changeDir: 'down' },
+        { label: '总激活', value: '1.57W', media: '1.57W', reyun: '1.52W', change: '+15.2%', changeDir: 'up' },
+        { label: '付费金额', value: '¥85.6W', media: '¥85.6W', reyun: '¥83.2W', change: '+8.4%', changeDir: 'up' },
+        { label: '付费设备数', value: '2,345', media: null, reyun: null, change: '+6.8%', changeDir: 'up' },
+      ],
+      tableData: [
+        { id:1, project:'忍者必须死3', channel:'巨量引擎', channelClass:'juliang', account:'忍者3-主账户', mediaSpend:'45,230', mediaConv:'1,234', mediaRoi:'2.15', reyunSpend:'44,850', reyunConv:'1,198', reyunRoi:'2.08', spendDiff:'+0.8%', spendDiffClass:'positive', convDiff:'+3.0%', convDiffClass:'positive' },
+        { id:2, project:'忍者必须死3', channel:'腾讯广告', channelClass:'guangdiantong', account:'忍者3-GDT01', mediaSpend:'32,180', mediaConv:'856', mediaRoi:'1.92', reyunSpend:'31,600', reyunConv:'830', reyunRoi:'1.85', spendDiff:'+1.8%', spendDiffClass:'positive', convDiff:'+3.1%', convDiffClass:'positive' },
+        { id:3, project:'忍者必须死3', channel:'磁力引擎', channelClass:'cili', account:'忍者3-KS主推', mediaSpend:'28,450', mediaConv:'723', mediaRoi:'1.78', reyunSpend:'27,900', reyunConv:'698', reyunRoi:'1.72', spendDiff:'+2.0%', spendDiffClass:'positive', convDiff:'+3.6%', convDiffClass:'positive' },
+        { id:4, project:'新项目1', channel:'巨量引擎', channelClass:'juliang', account:'新项目1-测试01', mediaSpend:'18,670', mediaConv:'534', mediaRoi:'1.65', reyunSpend:'18,320', reyunConv:'512', reyunRoi:'1.58', spendDiff:'+1.9%', spendDiffClass:'positive', convDiff:'+4.3%', convDiffClass:'positive' },
+        { id:5, project:'新项目1', channel:'腾讯广告', channelClass:'guangdiantong', account:'新项目1-GDT01', mediaSpend:'12,340', mediaConv:'367', mediaRoi:'1.42', reyunSpend:'12,100', reyunConv:'345', reyunRoi:'1.35', spendDiff:'+2.0%', spendDiffClass:'positive', convDiff:'+6.4%', convDiffClass:'positive' },
+        { id:6, project:'新项目1', channel:'磁力引擎', channelClass:'cili', account:'新项目1-KS01', mediaSpend:'8,920', mediaConv:'198', mediaRoi:'1.18', reyunSpend:'8,750', reyunConv:'185', reyunRoi:'1.10', spendDiff:'+1.9%', spendDiffClass:'positive', convDiff:'+7.0%', convDiffClass:'positive' },
+        { id:7, project:'新项目2', channel:'巨量引擎', channelClass:'juliang', account:'新项目2-预热01', mediaSpend:'6,540', mediaConv:'156', mediaRoi:'1.35', reyunSpend:'6,420', reyunConv:'148', reyunRoi:'1.28', spendDiff:'+1.9%', spendDiffClass:'positive', convDiff:'+5.4%', convDiffClass:'positive' },
+        { id:8, project:'新项目2', channel:'腾讯广告', channelClass:'guangdiantong', account:'新项目2-GDT预热', mediaSpend:'4,280', mediaConv:'98', mediaRoi:'1.12', reyunSpend:'4,180', reyunConv:'92', reyunRoi:'1.05', spendDiff:'+2.4%', spendDiffClass:'positive', convDiff:'+6.5%', convDiffClass:'positive' },
+      ],
+    }
+  },
+  mounted() {
+    this.initChart();
+  },
+  methods: {
+    initChart() {
+      const chart = echarts.init(document.getElementById('trendChart'));
+      const days = ['04-07', '04-08', '04-09', '04-10', '04-11', '04-12', '04-13'];
+      const option = {
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: '#fff', borderColor: '#E2E8F0', borderWidth: 1, textStyle: { color: '#334155', fontSize: 12 }, padding: [12, 16] },
+        legend: { data: ['巨量引擎', '腾讯广告', '磁力引擎', 'ROI', '转化率'], bottom: 0, textStyle: { color: '#64748B', fontSize: 12 }, itemWidth: 16, itemHeight: 8, itemGap: 24 },
+        grid: { left: 60, right: 80, top: 20, bottom: 48 },
+        xAxis: { type: 'category', data: days, axisLine: { lineStyle: { color: '#E2E8F0' } }, axisLabel: { color: '#94A3B8', fontSize: 12 }, axisTick: { show: false } },
+        yAxis: [
+          { type: 'value', name: '消耗(万)', nameTextStyle: { color: '#94A3B8', fontSize: 11, padding: [0, 40, 0, 0] }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#F1F5F9', type: 'dashed' } }, axisLabel: { color: '#94A3B8', fontSize: 12 } },
+          { type: 'value', name: 'ROI / 转化率', nameTextStyle: { color: '#94A3B8', fontSize: 11 }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { color: '#94A3B8', fontSize: 12 }, min: 0, max: 4 },
+        ],
+        series: [
+          { name: '巨量引擎', type: 'bar', stack: 'spend', barWidth: 28, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#959EEB'},{offset:1,color:'#7580DF'}]), borderRadius: [0,0,0,0] }, data: [7.2, 6.8, 7.5, 8.1, 7.9, 6.5, 7.0] },
+          { name: '腾讯广告', type: 'bar', stack: 'spend', itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#6DC4B4'},{offset:1,color:'#45A898'}]) }, data: [4.8, 5.2, 4.6, 5.0, 4.9, 4.3, 4.5] },
+          { name: '磁力引擎', type: 'bar', stack: 'spend', itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#E5AD7B'},{offset:1,color:'#D49560'}]), borderRadius: [4,4,0,0] }, data: [3.5, 3.8, 3.2, 3.9, 3.6, 3.1, 3.7] },
+          { name: 'ROI', type: 'line', yAxisIndex: 1, smooth: true, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: '#D4899C' }, itemStyle: { color: '#D4899C', borderWidth: 2, borderColor: '#fff' }, data: [1.85, 1.78, 1.92, 1.88, 1.82, 1.75, 1.85] },
+          { name: '转化率', type: 'line', yAxisIndex: 1, smooth: true, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: '#5CB89E' }, itemStyle: { color: '#5CB89E', borderWidth: 2, borderColor: '#fff' }, data: [2.1, 1.95, 2.25, 2.18, 2.05, 1.88, 2.12] },
+        ],
+      };
+      chart.setOption(option);
+      window.addEventListener('resize', () => chart.resize());
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聚合投放工作台 - 原型演示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 680px;
+            padding: 40px 24px;
+        }
+        .logo {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+        }
+        .logo svg { width: 40px; height: 40px; fill: #fff; }
+        h1 {
+            color: #fff;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 16px;
+            margin-bottom: 48px;
+        }
+        .cards {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 32px 28px;
+            width: 300px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .card:hover {
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+        }
+        .card-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .card-icon.dashboard { background: linear-gradient(135deg, #6366F1, #818CF8); }
+        .card-icon.workstation { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+        .card h2 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .card p {
+            color: rgba(255,255,255,0.55);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .footer {
+            margin-top: 56px;
+            color: rgba(255,255,255,0.3);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        </div>
+        <h1>聚合投放工作台</h1>
+        <p class="subtitle">原型演示</p>
+        <div class="cards">
+            <a class="card" href="dashboard.html">
+                <div class="card-icon dashboard">
+                    <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                </div>
+                <h2>数据看板</h2>
+                <p>大盘数据看板，多渠道数据聚合展示，支持双数据源对照分析</p>
+            </a>
+            <a class="card" href="workstation.html">
+                <div class="card-icon workstation">
+                    <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                </div>
+                <h2>工作台</h2>
+                <p>广告投放管理工作台，支持多渠道层级穿透与批量操作</p>
+            </a>
+        </div>
+        <div class="footer">聚合投放工作台 &copy; 2026</div>
+    </div>
+</body>
+</html>
