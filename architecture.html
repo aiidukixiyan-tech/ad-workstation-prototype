@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>增长中台 - 架构图</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F0F2F7; color: #1E293B; min-height: 100vh; padding: 40px 24px; }
+
+.page { max-width: 1200px; margin: 0 auto; }
+
+/* ===== Title Banner ===== */
+.banner { background: linear-gradient(135deg, #1E1B4B, #312E81, #4338CA); border-radius: 16px; padding: 32px 40px; margin-bottom: 24px; position: relative; overflow: hidden; }
+.banner::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: rgba(99,102,241,0.15); border-radius: 50%; }
+.banner::after { content: ''; position: absolute; bottom: -60px; left: 40%; width: 300px; height: 300px; background: rgba(139,92,246,0.08); border-radius: 50%; }
+.banner-content { position: relative; z-index: 1; }
+.banner-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.banner-logo { width: 48px; height: 48px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; font-weight: 800; box-shadow: 0 4px 16px rgba(99,102,241,0.4); }
+.banner h1 { color: #fff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.banner-sub { color: rgba(255,255,255,0.5); font-size: 14px; margin-left: 64px; }
+.banner-loop { display: flex; align-items: center; gap: 8px; margin-top: 16px; margin-left: 64px; }
+.loop-step { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 6px 16px; font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 500; }
+.loop-arrow { color: rgba(255,255,255,0.35); font-size: 16px; }
+
+/* ===== Layer Labels ===== */
+.layer-label { writing-mode: vertical-rl; text-orientation: mixed; font-size: 13px; font-weight: 600; color: #94A3B8; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; padding: 0 6px; min-width: 32px; }
+
+/* ===== Data Dashboard Row ===== */
+.dashboard-row { display: flex; gap: 12px; margin-bottom: 16px; }
+.dashboard-card { flex: 1; background: #fff; border-radius: 14px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid #E8ECF3; display: flex; align-items: center; gap: 16px; position: relative; overflow: hidden; }
+.dashboard-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366F1, #8B5CF6, #A78BFA); }
+.dashboard-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #EEF2FF, #E0E7FF); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dashboard-icon svg { width: 22px; height: 22px; fill: #6366F1; }
+.dashboard-info h3 { font-size: 15px; font-weight: 600; color: #1E293B; margin-bottom: 2px; }
+.dashboard-info p { font-size: 12px; color: #94A3B8; }
+.dashboard-badge { position: absolute; top: 12px; right: 16px; font-size: 10px; background: #EEF2FF; color: #6366F1; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* ===== Application Layer ===== */
+.app-layer { display: flex; gap: 12px; margin-bottom: 16px; }
+.app-layer-content { flex: 1; display: flex; gap: 12px; }
+
+/* ===== Module Cards ===== */
+.module-card { flex: 1; background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid #E8ECF3; position: relative; transition: box-shadow 0.3s; }
+.module-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.module-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.module-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.module-title { font-size: 15px; font-weight: 700; color: #1E293B; }
+.module-subtitle { font-size: 11px; color: #94A3B8; font-weight: 500; margin-top: 1px; }
+.module-features { display: flex; flex-direction: column; gap: 6px; }
+.feature-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #F8FAFC; border-radius: 8px; font-size: 13px; color: #475569; transition: background 0.2s; }
+.feature-item:hover { background: #F1F5F9; }
+.feature-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* Module Color Themes */
+.module-card.insight { border-top: 3px solid #3B82F6; }
+.module-card.insight .module-icon { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
+.module-card.insight .feature-dot { background: #3B82F6; }
+
+.module-card.delivery { border-top: 3px solid #6366F1; }
+.module-card.delivery .module-icon { background: linear-gradient(135deg, #6366F1, #818CF8); }
+.module-card.delivery .feature-dot { background: #6366F1; }
+
+.module-card.creator { border-top: 3px solid #8B5CF6; }
+.module-card.creator .module-icon { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+.module-card.creator .feature-dot { background: #8B5CF6; }
+
+/* ===== Flow Arrows between modules ===== */
+.flow-connector { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 48px; flex-shrink: 0; gap: 4px; }
+.flow-arrow { font-size: 18px; color: #CBD5E1; }
+.flow-label { font-size: 10px; color: #94A3B8; writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: 1px; white-space: nowrap; font-weight: 500; }
+
+/* ===== Material Hub (Support Layer) ===== */
+.material-section { margin-bottom: 16px; }
+.material-card { background: #fff; border-radius: 14px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid #E8ECF3; position: relative; border-top: 3px solid #10B981; }
+.material-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.material-header-left { display: flex; align-items: center; gap: 10px; }
+.material-header-left .module-icon { background: linear-gradient(135deg, #10B981, #34D399); }
+.material-role-tags { display: flex; gap: 8px; }
+.role-tag { font-size: 11px; padding: 4px 12px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+.role-tag.up { background: #F0FDF4; color: #059669; border: 1px solid #BBF7D0; }
+.role-tag.down { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+.role-tag-arrow { font-size: 14px; }
+.material-body { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.material-col { }
+.material-col-title { font-size: 12px; font-weight: 600; color: #94A3B8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.material-col-items { display: flex; flex-direction: column; gap: 6px; }
+.material-feature { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #F8FAFC; border-radius: 8px; font-size: 13px; color: #475569; }
+.material-feature .feature-dot { background: #10B981; }
+
+/* ===== Support Arrows ===== */
+.support-arrows { display: flex; justify-content: space-around; margin-bottom: 8px; padding: 0 60px; }
+.support-arrow-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.support-arrow-line { width: 2px; height: 16px; background: linear-gradient(to bottom, #CBD5E1, #10B981); }
+.support-arrow-text { font-size: 10px; color: #10B981; font-weight: 500; }
+.support-arrow-icon { color: #10B981; font-size: 12px; }
+
+/* ===== AI Layer ===== */
+.ai-layer { background: linear-gradient(90deg, #FDF4FF, #FAF5FF, #F5F3FF); border: 1px solid #E9D5FF; border-radius: 14px; padding: 16px 24px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; }
+.ai-layer-label { font-size: 13px; font-weight: 700; color: #7C3AED; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.ai-layer-label svg { width: 18px; height: 18px; fill: #7C3AED; }
+.ai-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.ai-chip { font-size: 12px; padding: 5px 14px; background: #fff; border: 1px solid #E9D5FF; border-radius: 20px; color: #6D28D9; font-weight: 500; }
+
+/* ===== Infra Layer ===== */
+.infra-layer { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+.infra-label { font-size: 13px; font-weight: 700; color: #64748B; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.infra-label svg { width: 18px; height: 18px; fill: #64748B; }
+.infra-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.infra-chip { font-size: 12px; padding: 5px 14px; background: #fff; border: 1px solid #E2E8F0; border-radius: 20px; color: #475569; font-weight: 500; }
+
+/* ===== Section dividers ===== */
+.section-row { display: flex; gap: 12px; align-items: stretch; }
+.section-label-col { display: flex; align-items: center; justify-content: center; min-width: 36px; }
+.section-label { writing-mode: vertical-rl; text-orientation: mixed; font-size: 12px; font-weight: 600; color: #94A3B8; letter-spacing: 3px; background: #F0F2F7; padding: 8px 4px; border-radius: 6px; }
+.section-content { flex: 1; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Title Banner -->
+  <div class="banner">
+    <div class="banner-content">
+      <div class="banner-top">
+        <div class="banner-logo">增</div>
+        <h1>增长中台架构</h1>
+      </div>
+      <div class="banner-sub">覆盖游戏全生命周期的用户增长中台 · 将人的工作数字化，再智能化</div>
+      <div class="banner-loop">
+        <div class="loop-step">情报驱动方向</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step">内容创作产出</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step">投放验证效果</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step">数据反哺优化</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step" style="border-color:rgba(255,255,255,0.3)">&#x21BB;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Dashboard Row -->
+  <div class="section-row" style="margin-bottom:16px">
+    <div class="section-content">
+      <div class="dashboard-card">
+        <div class="dashboard-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        </div>
+        <div class="dashboard-info">
+          <h3>数据看板</h3>
+          <p>全局数据入口 · 聚合投放 + 素材 + 创作者数据 · 双数据源(媒体+热云)对照</p>
+        </div>
+        <div class="dashboard-badge">贯穿全局</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Layer: 3 Core Modules -->
+  <div class="section-row" style="margin-bottom:8px">
+    <div class="section-label-col">
+      <div class="section-label">应用层</div>
+    </div>
+    <div class="section-content">
+      <div class="app-layer" style="margin-bottom:0">
+        <!-- Market Insight -->
+        <div class="module-card insight">
+          <div class="module-header">
+            <div class="module-icon">洞</div>
+            <div>
+              <div class="module-title">市场洞察</div>
+              <div class="module-subtitle">信息输入 · 情报驱动</div>
+            </div>
+          </div>
+          <div class="module-features">
+            <div class="feature-item"><div class="feature-dot"></div>行业情报聚合</div>
+            <div class="feature-item"><div class="feature-dot"></div>竞品投放监控</div>
+            <div class="feature-item"><div class="feature-dot"></div>赛道追踪与异动</div>
+            <div class="feature-item"><div class="feature-dot"></div>热点发现与推送</div>
+          </div>
+        </div>
+
+        <div class="flow-connector">
+          <div class="flow-label">灵感驱动</div>
+          <div class="flow-arrow">→</div>
+        </div>
+
+        <!-- Aggregated Delivery -->
+        <div class="module-card delivery">
+          <div class="module-header">
+            <div class="module-icon">投</div>
+            <div>
+              <div class="module-title">聚合投放工作台</div>
+              <div class="module-subtitle">核心操作台</div>
+            </div>
+          </div>
+          <div class="module-features">
+            <div class="feature-item"><div class="feature-dot"></div>多平台批量投放操作</div>
+            <div class="feature-item"><div class="feature-dot"></div>虚拟回传策略配置</div>
+            <div class="feature-item"><div class="feature-dot"></div>预警与自动卡控</div>
+            <div class="feature-item"><div class="feature-dot"></div>跨渠道数据聚合</div>
+          </div>
+        </div>
+
+        <div class="flow-connector">
+          <div class="flow-label">效果归因</div>
+          <div class="flow-arrow">→</div>
+        </div>
+
+        <!-- Creator Pipeline -->
+        <div class="module-card creator">
+          <div class="module-header">
+            <div class="module-icon">创</div>
+            <div>
+              <div class="module-title">创作者管线</div>
+              <div class="module-subtitle">内容产出 · 协作管理</div>
+            </div>
+          </div>
+          <div class="module-features">
+            <div class="feature-item"><div class="feature-dot"></div>创作者库 CRM</div>
+            <div class="feature-item"><div class="feature-dot"></div>任务看板与协作</div>
+            <div class="feature-item"><div class="feature-dot"></div>审核反馈流程</div>
+            <div class="feature-item"><div class="feature-dot"></div>达人合作管理</div>
+            <div class="feature-item"><div class="feature-dot"></div>创作者效果归因</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Support Arrows -->
+  <div class="section-row" style="margin-bottom:8px">
+    <div class="section-label-col"><div style="min-width:36px"></div></div>
+    <div class="section-content">
+      <div class="support-arrows">
+        <div class="support-arrow-group">
+          <div class="support-arrow-icon">▼</div>
+          <div class="support-arrow-text">灵感方向</div>
+        </div>
+        <div class="support-arrow-group">
+          <div class="support-arrow-icon">▲</div>
+          <div class="support-arrow-text">素材供给广告</div>
+        </div>
+        <div class="support-arrow-group">
+          <div class="support-arrow-icon">▲▼</div>
+          <div class="support-arrow-text">素材参考 + 效果指导</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Material Pipeline (Support Hub) -->
+  <div class="section-row" style="margin-bottom:16px">
+    <div class="section-label-col"></div>
+    <div class="section-content">
+      <div class="material-card">
+        <div class="material-header">
+          <div class="material-header-left">
+            <div class="module-icon" style="background:linear-gradient(135deg,#10B981,#34D399)">素</div>
+            <div>
+              <div class="module-title">素材管线</div>
+              <div class="module-subtitle" style="color:#059669">双向支撑枢纽 · 连接情报、投放与创作者</div>
+            </div>
+          </div>
+          <div class="material-role-tags">
+            <div class="role-tag up"><span class="role-tag-arrow">↑</span> 向上赋能创作者</div>
+            <div class="role-tag down"><span class="role-tag-arrow">↓</span> 向下支撑投放</div>
+          </div>
+        </div>
+        <div class="material-body">
+          <div class="material-col">
+            <div class="material-col-title">素材资产</div>
+            <div class="material-col-items">
+              <div class="material-feature"><div class="feature-dot"></div>素材库与管理</div>
+              <div class="material-feature"><div class="feature-dot"></div>素材数据看板 + 评级</div>
+              <div class="material-feature"><div class="feature-dot"></div>素材版本管理</div>
+            </div>
+          </div>
+          <div class="material-col">
+            <div class="material-col-title">向上赋能创作者</div>
+            <div class="material-col-items">
+              <div class="material-feature"><div class="feature-dot"></div>爆款素材参考库</div>
+              <div class="material-feature"><div class="feature-dot"></div>效果数据反馈指导</div>
+              <div class="material-feature"><div class="feature-dot"></div>AI辅助脚本与灵感</div>
+            </div>
+          </div>
+          <div class="material-col">
+            <div class="material-col-title">向下支撑投放</div>
+            <div class="material-col-items">
+              <div class="material-feature"><div class="feature-dot"></div>广告素材供给</div>
+              <div class="material-feature"><div class="feature-dot"></div>素材自动化组装</div>
+              <div class="material-feature"><div class="feature-dot"></div>多渠道适配裁切</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Layer -->
+  <div class="section-row" style="margin-bottom:12px">
+    <div class="section-label-col">
+      <div class="section-label">能力层</div>
+    </div>
+    <div class="section-content">
+      <div class="ai-layer">
+        <div class="ai-layer-label">
+          <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg>
+          AI 能力层
+        </div>
+        <div class="ai-chips">
+          <div class="ai-chip">AI 情报摘要</div>
+          <div class="ai-chip">AI 素材分析与生成</div>
+          <div class="ai-chip">AI 投放建议</div>
+          <div class="ai-chip">AI 创作者匹配</div>
+          <div class="ai-chip">AI 异常诊断</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Infrastructure Layer -->
+  <div class="section-row">
+    <div class="section-label-col">
+      <div class="section-label">基建层</div>
+    </div>
+    <div class="section-content">
+      <div class="infra-layer">
+        <div class="infra-label">
+          <svg viewBox="0 0 24 24"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+          基建层
+        </div>
+        <div class="infra-chips">
+          <div class="infra-chip">多渠道 API 适配</div>
+          <div class="infra-chip">数据聚合管道</div>
+          <div class="infra-chip">规则引擎</div>
+          <div class="infra-chip">内部系统集成 (热云 / BI / 飞书)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
