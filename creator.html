@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>增长中台 - 创作者管线</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F5F7FA; color: #1E293B; font-size: 14px; min-height: 100vh; }
+
+/* ===== Top Navigation ===== */
+.top-nav { background: linear-gradient(90deg, #1E1B4B, #312E81); height: 56px; display: flex; align-items: center; padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.nav-brand { display: flex; align-items: center; gap: 10px; margin-right: 40px; }
+.nav-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+.nav-title { color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+.nav-tabs { display: flex; gap: 4px; flex: 1; }
+.nav-tab-wrap { position: relative; }
+.nav-tab { color: rgba(255,255,255,0.6); padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 6px; transition: all 0.2s; position: relative; user-select: none; }
+.nav-tab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+.nav-tab.active { color: #fff; background: rgba(255,255,255,0.12); }
+.nav-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 2px; background: #fff; border-radius: 1px; }
+.nav-dropdown { position: absolute; top: 100%; left: 0; margin-top: 8px; background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); padding: 16px; min-width: 280px; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all 0.2s ease; z-index: 200; }
+.nav-tab-wrap:hover .nav-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-tab-wrap::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 12px; }
+.nav-dropdown-title { font-size: 11px; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding: 0 4px; }
+.nav-dropdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.nav-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: #334155; }
+.nav-dropdown-item:hover { background: #F5F3FF; }
+.nav-dropdown-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.nav-dropdown-icon.juliang { background: linear-gradient(135deg, #7580DF, #959EEB); }
+.nav-dropdown-icon.guangdiantong { background: linear-gradient(135deg, #45A898, #6DC4B4); }
+.nav-dropdown-icon.cili { background: linear-gradient(135deg, #D49560, #E5AD7B); }
+.nav-dropdown-text { font-size: 13px; font-weight: 500; }
+.nav-dropdown-desc { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+.nav-dropdown-list .nav-dropdown-item { grid-column: 1 / -1; }
+.nav-dropdown.wide { min-width: 360px; }
+.nav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.nav-icon { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 18px; position: relative; transition: color 0.2s; }
+.nav-icon:hover { color: #fff; }
+.nav-badge { position: absolute; top: -4px; right: -6px; width: 16px; height: 16px; background: #EF4444; border-radius: 50%; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+.nav-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #818CF8, #C084FC); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ===== Sub Tabs ===== */
+.sub-tabs { background: #fff; padding: 0 24px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; }
+.sub-tab { padding: 14px 20px; cursor: pointer; font-size: 14px; color: #64748B; font-weight: 500; position: relative; transition: color 0.2s; user-select: none; }
+.sub-tab:hover { color: #6366F1; }
+.sub-tab.active { color: #6366F1; font-weight: 600; }
+.sub-tab.active::after { content: ''; position: absolute; bottom: 0; left: 20px; right: 20px; height: 2px; background: #6366F1; border-radius: 1px; }
+
+/* ===== Content ===== */
+.content { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+/* ===== Toolbar ===== */
+.board-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.board-toolbar-left { display: flex; align-items: center; gap: 12px; }
+.board-toolbar-right { display: flex; align-items: center; gap: 8px; }
+.create-btn { padding: 8px 20px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(99,102,241,0.3); }
+.create-btn:hover { opacity: 0.9; }
+.filter-select { padding: 7px 12px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; color: #475569; cursor: pointer; background: #fff; min-width: 120px; }
+.filter-select:focus { border-color: #6366F1; outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,0.15); }
+.view-toggle { display: flex; border: 1px solid #E2E8F0; border-radius: 6px; overflow: hidden; }
+.view-btn { padding: 6px 12px; font-size: 13px; border: none; background: #fff; color: #64748B; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+.view-btn.active { background: #6366F1; color: #fff; }
+.view-btn:not(:last-child) { border-right: 1px solid #E2E8F0; }
+.search-input { padding: 7px 12px 7px 32px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 13px; width: 200px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394A3B8' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 10px center; }
+.search-input:focus { border-color: #6366F1; outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,0.15); }
+
+/* ===== Stats Bar ===== */
+.stats-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+.stat-chip { background: #fff; border-radius: 8px; padding: 10px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.stat-chip-dot { width: 8px; height: 8px; border-radius: 50%; }
+.stat-chip-dot.pending { background: #F59E0B; }
+.stat-chip-dot.progress { background: #3B82F6; }
+.stat-chip-dot.review { background: #8B5CF6; }
+.stat-chip-dot.done { background: #10B981; }
+.stat-chip-count { font-weight: 700; font-size: 18px; color: #1E293B; }
+.stat-chip-label { color: #94A3B8; }
+
+/* ===== Kanban Board ===== */
+.kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; min-height: 500px; }
+.kanban-col { background: #F1F5F9; border-radius: 12px; padding: 12px; }
+.kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 4px; }
+.kanban-col-title { font-size: 13px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; }
+.kanban-col-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; border-radius: 10px; font-size: 11px; font-weight: 600; padding: 0 6px; }
+.col-pending .kanban-col-count { background: #FEF3C7; color: #D97706; }
+.col-progress .kanban-col-count { background: #DBEAFE; color: #2563EB; }
+.col-review .kanban-col-count { background: #EDE9FE; color: #7C3AED; }
+.col-done .kanban-col-count { background: #D1FAE5; color: #059669; }
+.kanban-col-add { width: 24px; height: 24px; border-radius: 6px; border: 1px dashed #CBD5E1; display: flex; align-items: center; justify-content: center; color: #94A3B8; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+.kanban-col-add:hover { border-color: #6366F1; color: #6366F1; }
+.kanban-cards { display: flex; flex-direction: column; gap: 8px; }
+
+/* ===== Task Card ===== */
+.task-card { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; }
+.task-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.10); transform: translateY(-1px); }
+.task-card.priority-high { border-left-color: #EF4444; }
+.task-card.priority-mid { border-left-color: #F59E0B; }
+.task-card.priority-low { border-left-color: #10B981; }
+.task-card-header { display: flex; align-items: start; justify-content: space-between; margin-bottom: 8px; }
+.task-card-project { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 3px; }
+.task-card-project.ninja { background: #EEF2FF; color: #6366F1; }
+.task-card-project.new1 { background: #ECFDF5; color: #059669; }
+.task-card-project.new2 { background: #FFF7ED; color: #EA580C; }
+.task-card-priority { font-size: 10px; color: #94A3B8; }
+.task-card-title { font-size: 14px; font-weight: 500; color: #1E293B; margin-bottom: 6px; line-height: 1.4; }
+.task-card-type { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #F8FAFC; color: #64748B; margin-bottom: 10px; }
+.task-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.task-card-assignee { display: flex; align-items: center; gap: 6px; }
+.task-avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #fff; }
+.task-avatar.a1 { background: linear-gradient(135deg, #6366F1, #818CF8); }
+.task-avatar.a2 { background: linear-gradient(135deg, #EC4899, #F472B6); }
+.task-avatar.a3 { background: linear-gradient(135deg, #10B981, #34D399); }
+.task-avatar.a4 { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
+.task-avatar.a5 { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+.task-card-name { font-size: 12px; color: #64748B; }
+.task-card-date { font-size: 11px; color: #CBD5E1; display: flex; align-items: center; gap: 3px; }
+.task-card-date.overdue { color: #EF4444; font-weight: 500; }
+.task-card-date.soon { color: #F59E0B; }
+.task-card-progress { margin-top: 8px; }
+.progress-bar { height: 4px; background: #F1F5F9; border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #6366F1, #818CF8); }
+.progress-label { font-size: 11px; color: #94A3B8; margin-top: 3px; text-align: right; }
+.task-card-tags { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+.task-tag { font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #F8FAFC; color: #94A3B8; }
+
+/* ===== Detail Drawer ===== */
+.drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 300; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer { position: fixed; top: 0; right: 0; width: 480px; height: 100vh; background: #fff; z-index: 310; box-shadow: -8px 0 30px rgba(0,0,0,0.12); transform: translateX(100%); transition: transform 0.3s ease; overflow-y: auto; }
+.drawer.open { transform: translateX(0); }
+.drawer-header { padding: 20px 24px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #fff; z-index: 1; }
+.drawer-title { font-size: 16px; font-weight: 600; }
+.drawer-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: #F8FAFC; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748B; font-size: 18px; transition: all 0.2s; }
+.drawer-close:hover { background: #F1F5F9; }
+.drawer-body { padding: 20px 24px; }
+.drawer-section { margin-bottom: 24px; }
+.drawer-section-title { font-size: 13px; font-weight: 600; color: #94A3B8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.drawer-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.drawer-info-item { }
+.drawer-info-label { font-size: 12px; color: #94A3B8; margin-bottom: 2px; }
+.drawer-info-value { font-size: 14px; color: #1E293B; font-weight: 500; }
+.drawer-brief { background: #F8FAFC; border-radius: 8px; padding: 14px; font-size: 13px; color: #475569; line-height: 1.7; }
+.drawer-timeline { }
+.timeline-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+.timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 28px; bottom: 0; width: 1px; background: #E2E8F0; }
+.timeline-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
+.timeline-dot.create { background: #EEF2FF; color: #6366F1; }
+.timeline-dot.assign { background: #FEF3C7; color: #D97706; }
+.timeline-dot.submit { background: #DBEAFE; color: #2563EB; }
+.timeline-dot.review { background: #EDE9FE; color: #7C3AED; }
+.timeline-dot.approve { background: #D1FAE5; color: #059669; }
+.timeline-dot.reject { background: #FEE2E2; color: #DC2626; }
+.timeline-content { }
+.timeline-action { font-size: 13px; color: #1E293B; font-weight: 500; }
+.timeline-time { font-size: 11px; color: #CBD5E1; margin-top: 2px; }
+.timeline-note { font-size: 12px; color: #64748B; margin-top: 4px; background: #F8FAFC; padding: 8px 10px; border-radius: 6px; line-height: 1.5; }
+.drawer-actions { display: flex; gap: 8px; padding: 16px 24px; border-top: 1px solid #F1F5F9; position: sticky; bottom: 0; background: #fff; }
+.drawer-btn { padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid #E2E8F0; background: #fff; color: #475569; flex: 1; text-align: center; }
+.drawer-btn:hover { border-color: #6366F1; color: #6366F1; }
+.drawer-btn.primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; border: none; }
+.drawer-btn.primary:hover { opacity: 0.9; }
+.drawer-btn.danger { color: #EF4444; border-color: #FCA5A5; }
+.drawer-btn.danger:hover { background: #FEF2F2; }
+.status-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.status-badge.pending { background: #FEF3C7; color: #D97706; }
+.status-badge.progress { background: #DBEAFE; color: #2563EB; }
+.status-badge.review { background: #EDE9FE; color: #7C3AED; }
+.status-badge.done { background: #D1FAE5; color: #059669; }
+
+/* ===== AI Assistant ===== */
+.ai-fab { position: fixed; bottom: 28px; right: 28px; z-index: 200; }
+.ai-fab-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99,102,241,0.4); transition: transform 0.2s, box-shadow 0.2s; }
+.ai-fab-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(99,102,241,0.5); }
+.ai-fab-btn svg { width: 26px; height: 26px; fill: #fff; }
+.ai-panel { position: absolute; bottom: 68px; right: 0; width: 380px; background: #fff; border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.15); overflow: hidden; display: none; }
+.ai-panel.open { display: block; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.ai-panel-header { background: linear-gradient(135deg, #6366F1, #8B5CF6); padding: 16px 20px; color: #fff; }
+.ai-panel-header h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.ai-panel-header p { font-size: 12px; opacity: 0.8; }
+.ai-panel-body { padding: 16px 20px; max-height: 320px; overflow-y: auto; }
+.ai-msg { display: flex; gap: 10px; margin-bottom: 16px; }
+.ai-msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ai-msg-avatar svg { width: 16px; height: 16px; fill: #fff; }
+.ai-msg-content { background: #F5F3FF; border-radius: 0 12px 12px 12px; padding: 10px 14px; font-size: 13px; color: #334155; line-height: 1.6; }
+.ai-msg-content .highlight { color: #6366F1; font-weight: 500; }
+.ai-panel-input { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #F1F5F9; }
+.ai-panel-input input { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; }
+.ai-panel-input input:focus { border-color: #6366F1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+.ai-panel-input button { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.ai-panel-input button svg { width: 18px; height: 18px; fill: #fff; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo">增</div>
+      <div class="nav-title">增长中台</div>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='intelligence.html'">情报中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">情报中心</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="intelligence.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">总</div><div><div class="nav-dropdown-text">情报总览</div><div class="nav-dropdown-desc">AI摘要与行业热点聚合</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">追</div><div><div class="nav-dropdown-text">行业追踪</div><div class="nav-dropdown-desc">TapTap / 七麦 / 行业新闻</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)">竞</div><div><div class="nav-dropdown-text">竞品监控</div><div class="nav-dropdown-desc">竞品投放与活动追踪</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='dashboard.html'">数据看板</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">数据看板</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="dashboard.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">大</div><div><div class="nav-dropdown-text">大盘看板</div><div class="nav-dropdown-desc">全渠道数据汇总与趋势</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">包</div><div><div class="nav-dropdown-text">包体渠道看板</div><div class="nav-dropdown-desc">iOS / 安卓各渠道数据</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D4899C,#E0A5B4)">素</div><div><div class="nav-dropdown-text">素材效果看板</div><div class="nav-dropdown-desc">素材维度数据分析</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#64748B,#94A3B8)">自</div><div><div class="nav-dropdown-text">自定义看板</div><div class="nav-dropdown-desc">自由搭建个性化数据视图</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='workstation.html'">投放工作台</div>
+        <div class="nav-dropdown wide">
+          <div class="nav-dropdown-title">投放渠道</div>
+          <div class="nav-dropdown-grid">
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon juliang">巨</div><div><div class="nav-dropdown-text">巨量引擎</div><div class="nav-dropdown-desc">字节跳动 · 12个账户</div></div></a>
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon guangdiantong">腾</div><div><div class="nav-dropdown-text">腾讯广告</div><div class="nav-dropdown-desc">广点通 · 8个账户</div></div></a>
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon cili">磁</div><div><div class="nav-dropdown-text">磁力引擎</div><div class="nav-dropdown-desc">快手 · 6个账户</div></div></a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab active">创作者管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">创作者管线</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item" style="background:#F5F3FF"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">任</div><div><div class="nav-dropdown-text">任务看板</div><div class="nav-dropdown-desc">创作任务管理与协作</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EC4899,#F472B6)">人</div><div><div class="nav-dropdown-text">创作者库</div><div class="nav-dropdown-desc">内部/外部创作者管理</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#10B981,#34D399)">效</div><div><div class="nav-dropdown-text">效果看板</div><div class="nav-dropdown-desc">创作者产出与效果分析</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">素材管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">素材管线</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#45A898,#6DC4B4)">库</div><div><div class="nav-dropdown-text">素材库</div><div class="nav-dropdown-desc">素材资产管理与检索</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D49560,#E5AD7B)">工</div><div><div class="nav-dropdown-text">素材工具箱</div><div class="nav-dropdown-desc">三视图、热点切片等 AI 工具</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">策略中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">策略中心</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#7580DF,#959EEB)">回</div><div><div class="nav-dropdown-text">虚拟回传策略</div><div class="nav-dropdown-desc">扣传 / 补报 / 档位配置</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EF4444,#F87171)">警</div><div><div class="nav-dropdown-text">告警卡控规则</div><div class="nav-dropdown-desc">异常监控与自动化卡控</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" title="通知">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="nav-avatar" title="张三">张</div>
+    </div>
+  </div>
+
+  <!-- Sub Tabs -->
+  <div class="sub-tabs">
+    <div class="sub-tab active">任务看板</div>
+    <div class="sub-tab">创作者库</div>
+    <div class="sub-tab">效果看板</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Toolbar -->
+    <div class="board-toolbar">
+      <div class="board-toolbar-left">
+        <button class="create-btn" @click="showNewTask = true">
+          <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          新建任务
+        </button>
+        <select class="filter-select">
+          <option>全部项目</option>
+          <option>忍者必须死3</option>
+          <option>新项目1</option>
+          <option>新项目2</option>
+        </select>
+        <select class="filter-select">
+          <option>全部创作者</option>
+          <option>李四</option>
+          <option>王五</option>
+          <option>达人A</option>
+          <option>达人B</option>
+        </select>
+      </div>
+      <div class="board-toolbar-right">
+        <input class="search-input" placeholder="搜索任务..." />
+        <div class="view-toggle">
+          <div class="view-btn active">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            看板
+          </div>
+          <div class="view-btn">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+            列表
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-chip">
+        <div class="stat-chip-dot pending"></div>
+        <div class="stat-chip-count">3</div>
+        <div class="stat-chip-label">待接单</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-dot progress"></div>
+        <div class="stat-chip-count">5</div>
+        <div class="stat-chip-label">制作中</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-dot review"></div>
+        <div class="stat-chip-count">2</div>
+        <div class="stat-chip-label">待审核</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-dot done"></div>
+        <div class="stat-chip-count">12</div>
+        <div class="stat-chip-label">已完成</div>
+      </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban">
+      <!-- Pending Column -->
+      <div class="kanban-col col-pending">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">待接单 <span class="kanban-col-count">3</span></div>
+          <div class="kanban-col-add">+</div>
+        </div>
+        <div class="kanban-cards">
+          <div class="task-card priority-high" v-for="t in tasks.pending" :key="t.id" @click="openDrawer(t)">
+            <div class="task-card-header">
+              <span :class="['task-card-project', t.projectClass]">{{ t.project }}</span>
+              <span class="task-card-priority">{{ t.priority }}</span>
+            </div>
+            <div class="task-card-title">{{ t.title }}</div>
+            <div class="task-card-type">{{ t.type }}</div>
+            <div class="task-card-footer">
+              <div class="task-card-assignee">
+                <div :class="['task-avatar', t.avatarClass]">{{ t.avatarText }}</div>
+                <span class="task-card-name">{{ t.assignee }}</span>
+              </div>
+              <div :class="['task-card-date', t.dateClass]">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                {{ t.deadline }}
+              </div>
+            </div>
+            <div class="task-card-tags" v-if="t.tags">
+              <span class="task-tag" v-for="tag in t.tags" :key="tag">{{ tag }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress Column -->
+      <div class="kanban-col col-progress">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">制作中 <span class="kanban-col-count">5</span></div>
+          <div class="kanban-col-add">+</div>
+        </div>
+        <div class="kanban-cards">
+          <div class="task-card" :class="'priority-' + t.priorityLevel" v-for="t in tasks.progress" :key="t.id" @click="openDrawer(t)">
+            <div class="task-card-header">
+              <span :class="['task-card-project', t.projectClass]">{{ t.project }}</span>
+              <span class="task-card-priority">{{ t.priority }}</span>
+            </div>
+            <div class="task-card-title">{{ t.title }}</div>
+            <div class="task-card-type">{{ t.type }}</div>
+            <div class="task-card-progress" v-if="t.progress !== undefined">
+              <div class="progress-bar"><div class="progress-bar-fill" :style="{ width: t.progress + '%' }"></div></div>
+              <div class="progress-label">{{ t.progress }}%</div>
+            </div>
+            <div class="task-card-footer">
+              <div class="task-card-assignee">
+                <div :class="['task-avatar', t.avatarClass]">{{ t.avatarText }}</div>
+                <span class="task-card-name">{{ t.assignee }}</span>
+              </div>
+              <div :class="['task-card-date', t.dateClass]">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                {{ t.deadline }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Column -->
+      <div class="kanban-col col-review">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">待审核 <span class="kanban-col-count">2</span></div>
+        </div>
+        <div class="kanban-cards">
+          <div class="task-card" :class="'priority-' + t.priorityLevel" v-for="t in tasks.review" :key="t.id" @click="openDrawer(t)">
+            <div class="task-card-header">
+              <span :class="['task-card-project', t.projectClass]">{{ t.project }}</span>
+              <span class="task-card-priority">{{ t.priority }}</span>
+            </div>
+            <div class="task-card-title">{{ t.title }}</div>
+            <div class="task-card-type">{{ t.type }}</div>
+            <div class="task-card-footer">
+              <div class="task-card-assignee">
+                <div :class="['task-avatar', t.avatarClass]">{{ t.avatarText }}</div>
+                <span class="task-card-name">{{ t.assignee }}</span>
+              </div>
+              <div :class="['task-card-date', t.dateClass]">提交于 {{ t.submitDate }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Done Column -->
+      <div class="kanban-col col-done">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">已完成 <span class="kanban-col-count">12</span></div>
+        </div>
+        <div class="kanban-cards">
+          <div class="task-card priority-low" v-for="t in tasks.done" :key="t.id" @click="openDrawer(t)" style="opacity:0.75">
+            <div class="task-card-header">
+              <span :class="['task-card-project', t.projectClass]">{{ t.project }}</span>
+            </div>
+            <div class="task-card-title" style="text-decoration:line-through;color:#94A3B8">{{ t.title }}</div>
+            <div class="task-card-type">{{ t.type }}</div>
+            <div class="task-card-footer">
+              <div class="task-card-assignee">
+                <div :class="['task-avatar', t.avatarClass]">{{ t.avatarText }}</div>
+                <span class="task-card-name">{{ t.assignee }}</span>
+              </div>
+              <div class="task-card-date" style="color:#10B981">{{ t.doneDate }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Detail Drawer -->
+  <div class="drawer-overlay" :class="{ open: drawerOpen }" @click="drawerOpen = false"></div>
+  <div class="drawer" :class="{ open: drawerOpen }">
+    <div class="drawer-header">
+      <div class="drawer-title">{{ selectedTask?.title || '' }}</div>
+      <button class="drawer-close" @click="drawerOpen = false">&times;</button>
+    </div>
+    <div class="drawer-body" v-if="selectedTask">
+      <div class="drawer-section">
+        <div class="drawer-section-title">基本信息</div>
+        <div class="drawer-info-grid">
+          <div class="drawer-info-item">
+            <div class="drawer-info-label">所属项目</div>
+            <div class="drawer-info-value">{{ selectedTask.project }}</div>
+          </div>
+          <div class="drawer-info-item">
+            <div class="drawer-info-label">素材类型</div>
+            <div class="drawer-info-value">{{ selectedTask.type }}</div>
+          </div>
+          <div class="drawer-info-item">
+            <div class="drawer-info-label">指派创作者</div>
+            <div class="drawer-info-value">{{ selectedTask.assignee }}</div>
+          </div>
+          <div class="drawer-info-item">
+            <div class="drawer-info-label">优先级</div>
+            <div class="drawer-info-value">{{ selectedTask.priority }}</div>
+          </div>
+          <div class="drawer-info-item">
+            <div class="drawer-info-label">截止日期</div>
+            <div class="drawer-info-value">{{ selectedTask.deadline || selectedTask.submitDate || selectedTask.doneDate }}</div>
+          </div>
+          <div class="drawer-info-item">
+            <div class="drawer-info-label">当前状态</div>
+            <div class="drawer-info-value"><span class="status-badge progress">制作中</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">Brief 内容</div>
+        <div class="drawer-brief">
+          <strong>目标受众：</strong>18-35岁男性手游玩家<br>
+          <strong>核心卖点：</strong>爽快打击感 + PVP竞技模式<br>
+          <strong>素材风格：</strong>真人实拍游戏解说，突出游戏特色玩法<br>
+          <strong>时长要求：</strong>15-30秒竖版<br>
+          <strong>参考素材：</strong>弹壳特攻队近期爆款素材（见附件）<br>
+          <strong>备注：</strong>配合4月版本更新，突出PVP赛季系统
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">操作记录</div>
+        <div class="drawer-timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot create">创</div>
+            <div class="timeline-content">
+              <div class="timeline-action">张三 创建了任务</div>
+              <div class="timeline-time">04-10 09:30</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot assign">指</div>
+            <div class="timeline-content">
+              <div class="timeline-action">张三 指派给 李四</div>
+              <div class="timeline-time">04-10 09:35</div>
+              <div class="timeline-note">李四擅长真人实拍类素材，近期爆款率22%</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot submit">接</div>
+            <div class="timeline-content">
+              <div class="timeline-action">李四 接受了任务</div>
+              <div class="timeline-time">04-10 10:15</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot review">提</div>
+            <div class="timeline-content">
+              <div class="timeline-action">李四 提交了初版素材</div>
+              <div class="timeline-time">04-12 16:00</div>
+              <div class="timeline-note">已上传3组素材变体，等待审核</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot reject">退</div>
+            <div class="timeline-content">
+              <div class="timeline-action">张三 退回了素材</div>
+              <div class="timeline-time">04-13 10:20</div>
+              <div class="timeline-note">第2组素材的开头节奏太慢，前3秒需要更强的hook，请参考附件中的竞品素材调整</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-actions" v-if="selectedTask">
+      <button class="drawer-btn">催办</button>
+      <button class="drawer-btn danger">退回修改</button>
+      <button class="drawer-btn primary">通过审核</button>
+    </div>
+  </div>
+
+  <!-- AI Assistant -->
+  <div class="ai-fab">
+    <div class="ai-panel" :class="{ open: aiOpen }">
+      <div class="ai-panel-header">
+        <h3>AI 创作助手</h3>
+        <p>任务管理 · 灵感推荐 · 效率分析</p>
+      </div>
+      <div class="ai-panel-body">
+        <div class="ai-msg">
+          <div class="ai-msg-avatar"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg></div>
+          <div class="ai-msg-content">
+            当前有 <span class="highlight">2个任务</span> 即将到期（48小时内）：<br>
+            1. 「忍3-PVP赛季推广」李四制作中，截止4/17<br>
+            2. 「新项目1-横版开屏」王五制作中，截止4/18<br><br>
+            建议及时跟进进度。
+          </div>
+        </div>
+        <div class="ai-msg">
+          <div class="ai-msg-avatar"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg></div>
+          <div class="ai-msg-content">
+            本周创作者效率分析：<span class="highlight">达人A</span> 爆款率最高 (33%)，建议优先分配高优先级任务。<span class="highlight">王五</span> 近期任务超期率上升，可能需要调整排期。
+          </div>
+        </div>
+      </div>
+      <div class="ai-panel-input">
+        <input placeholder="输入问题，例如：谁最适合做动画CG类素材？" />
+        <button><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+    <button class="ai-fab-btn" @click="aiOpen = !aiOpen">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue;
+createApp({
+  data() {
+    return {
+      aiOpen: false,
+      drawerOpen: false,
+      selectedTask: null,
+      tasks: {
+        pending: [
+          { id: 'p1', project: '忍者必须死3', projectClass: 'ninja', title: '4月版本更新-开屏素材', type: '横版开屏', priority: '高优先', priorityLevel: 'high', assignee: '李四', avatarText: '李', avatarClass: 'a1', deadline: '04/18', dateClass: 'soon', tags: ['4月版本', '开屏'] },
+          { id: 'p2', project: '新项目1', projectClass: 'new1', title: '竞技模式-信息流素材', type: '竖版信息流', priority: '中优先', priorityLevel: 'mid', assignee: '达人A', avatarText: 'A', avatarClass: 'a4', deadline: '04/20', dateClass: '', tags: ['竞技模式'] },
+          { id: 'p3', project: '新项目2', projectClass: 'new2', title: '预热期品牌向视频', type: '横版品牌视频', priority: '中优先', priorityLevel: 'mid', assignee: '待指派', avatarText: '?', avatarClass: 'a5', deadline: '04/22', dateClass: '' },
+        ],
+        progress: [
+          { id: 'g1', project: '忍者必须死3', projectClass: 'ninja', title: 'PVP赛季推广-真人实拍', type: '真人实拍', priority: '高优先', priorityLevel: 'high', assignee: '李四', avatarText: '李', avatarClass: 'a1', deadline: '04/17', dateClass: 'soon', progress: 75 },
+          { id: 'g2', project: '新项目1', projectClass: 'new1', title: '核心玩法展示-竖版', type: '竖版信息流', priority: '高优先', priorityLevel: 'high', assignee: '王五', avatarText: '王', avatarClass: 'a3', deadline: '04/18', dateClass: 'soon', progress: 60 },
+          { id: 'g3', project: '忍者必须死3', projectClass: 'ninja', title: '社交裂变活动素材', type: '动画CG', priority: '中优先', priorityLevel: 'mid', assignee: '达人B', avatarText: 'B', avatarClass: 'a2', deadline: '04/21', dateClass: '', progress: 40 },
+          { id: 'g4', project: '新项目1', projectClass: 'new1', title: '横版开屏-场景篇', type: '横版开屏', priority: '低优先', priorityLevel: 'low', assignee: '王五', avatarText: '王', avatarClass: 'a3', deadline: '04/23', dateClass: '', progress: 25 },
+          { id: 'g5', project: '新项目2', projectClass: 'new2', title: '预注册引导视频', type: '竖版信息流', priority: '中优先', priorityLevel: 'mid', assignee: '达人A', avatarText: 'A', avatarClass: 'a4', deadline: '04/19', dateClass: 'soon', progress: 80 },
+        ],
+        review: [
+          { id: 'r1', project: '忍者必须死3', projectClass: 'ninja', title: '春季活动推广-动画CG', type: '动画CG', priority: '高优先', priorityLevel: 'high', assignee: '李四', avatarText: '李', avatarClass: 'a1', submitDate: '04/14', dateClass: '' },
+          { id: 'r2', project: '新项目1', projectClass: 'new1', title: '角色展示-竖版短视频', type: '竖版信息流', priority: '中优先', priorityLevel: 'mid', assignee: '达人A', avatarText: 'A', avatarClass: 'a4', submitDate: '04/13', dateClass: '' },
+        ],
+        done: [
+          { id: 'd1', project: '忍者必须死3', projectClass: 'ninja', title: '3月大版本-主KV素材', type: '横版品牌', assignee: '李四', avatarText: '李', avatarClass: 'a1', doneDate: '04/08' },
+          { id: 'd2', project: '忍者必须死3', projectClass: 'ninja', title: '抖音达人合作-实拍', type: '真人实拍', assignee: '达人A', avatarText: 'A', avatarClass: 'a4', doneDate: '04/06' },
+          { id: 'd3', project: '新项目1', projectClass: 'new1', title: '首曝PV-全渠道版', type: '动画CG', assignee: '王五', avatarText: '王', avatarClass: 'a3', doneDate: '04/03' },
+        ],
+      },
+    }
+  },
+  methods: {
+    openDrawer(task) {
+      this.selectedTask = task;
+      this.drawerOpen = true;
+    },
+  },
+}).mount('#app');
+</script>
+</body>
+</html>

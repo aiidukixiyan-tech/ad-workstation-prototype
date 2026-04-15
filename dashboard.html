@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>聚合投放工作台 - 数据看板</title>
+<title>增长中台 - 数据看板</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -161,10 +161,21 @@ tbody tr:last-child td { border-bottom: none; }
   <!-- Top Navigation -->
   <div class="top-nav">
     <div class="nav-brand">
-      <div class="nav-logo">聚</div>
-      <div class="nav-title">聚合投放工作台</div>
+      <div class="nav-logo">增</div>
+      <div class="nav-title">增长中台</div>
     </div>
     <div class="nav-tabs">
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='intelligence.html'">情报中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">情报中心</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="intelligence.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">总</div><div><div class="nav-dropdown-text">情报总览</div><div class="nav-dropdown-desc">AI摘要与行业热点聚合</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">追</div><div><div class="nav-dropdown-text">行业追踪</div><div class="nav-dropdown-desc">TapTap / 七麦 / 行业新闻</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)">竞</div><div><div class="nav-dropdown-text">竞品监控</div><div class="nav-dropdown-desc">竞品投放与活动追踪</div></div></div>
+          </div>
+        </div>
+      </div>
       <div class="nav-tab-wrap">
         <div class="nav-tab active">数据看板</div>
         <div class="nav-dropdown">
@@ -178,13 +189,24 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
       <div class="nav-tab-wrap">
-        <div class="nav-tab" onclick="location.href='workstation.html'">工作台</div>
+        <div class="nav-tab" onclick="location.href='workstation.html'">投放工作台</div>
         <div class="nav-dropdown wide">
           <div class="nav-dropdown-title">投放渠道</div>
           <div class="nav-dropdown-grid">
             <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon juliang">巨</div><div><div class="nav-dropdown-text">巨量引擎</div><div class="nav-dropdown-desc">字节跳动 · 12个账户</div></div></a>
             <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon guangdiantong">腾</div><div><div class="nav-dropdown-text">腾讯广告</div><div class="nav-dropdown-desc">广点通 · 8个账户</div></div></a>
             <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon cili">磁</div><div><div class="nav-dropdown-text">磁力引擎</div><div class="nav-dropdown-desc">快手 · 6个账户</div></div></a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='creator.html'">创作者管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">创作者管线</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="creator.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">任</div><div><div class="nav-dropdown-text">任务看板</div><div class="nav-dropdown-desc">创作任务管理与协作</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EC4899,#F472B6)">人</div><div><div class="nav-dropdown-text">创作者库</div><div class="nav-dropdown-desc">内部/外部创作者管理</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#10B981,#34D399)">效</div><div><div class="nav-dropdown-text">效果看板</div><div class="nav-dropdown-desc">创作者产出与效果分析</div></div></div>
           </div>
         </div>
       </div>

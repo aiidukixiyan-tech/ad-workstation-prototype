@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>聚合投放工作台 - 原型演示</title>
+    <title>增长中台 - 原型演示</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -16,7 +16,7 @@
         }
         .container {
             text-align: center;
-            max-width: 680px;
+            max-width: 900px;
             padding: 40px 24px;
         }
         .logo {
@@ -43,21 +43,22 @@
             margin-bottom: 48px;
         }
         .cards {
-            display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 720px;
+            margin: 0 auto;
         }
         .card {
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 16px;
-            padding: 32px 28px;
-            width: 300px;
+            padding: 28px 24px;
             text-decoration: none;
             transition: all 0.3s ease;
             cursor: pointer;
+            text-align: left;
         }
         .card:hover {
             background: rgba(255,255,255,0.14);
@@ -65,32 +66,47 @@
             transform: translateY(-4px);
             box-shadow: 0 16px 48px rgba(0,0,0,0.2);
         }
+        .card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
         .card-icon {
-            width: 48px; height: 48px;
+            width: 44px; height: 44px;
             border-radius: 12px;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
-            font-size: 24px;
+            flex-shrink: 0;
         }
-        .card-icon.dashboard { background: linear-gradient(135deg, #6366F1, #818CF8); }
+        .card-icon.intel { background: linear-gradient(135deg, #6366F1, #818CF8); }
+        .card-icon.dashboard { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
         .card-icon.workstation { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+        .card-icon.creator { background: linear-gradient(135deg, #EC4899, #F472B6); }
         .card h2 {
             color: #fff;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
-            margin-bottom: 8px;
         }
+        .card-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .card-badge.priority { background: rgba(239,68,68,0.2); color: #FCA5A5; }
+        .card-badge.new { background: rgba(99,102,241,0.2); color: #A5B4FC; }
+        .card-badge.ready { background: rgba(16,185,129,0.2); color: #6EE7B7; }
         .card p {
             color: rgba(255,255,255,0.55);
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.6;
         }
         .footer {
-            margin-top: 56px;
+            margin-top: 48px;
             color: rgba(255,255,255,0.3);
             font-size: 13px;
+        }
+        @media (max-width: 640px) {
+            .cards { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -99,25 +115,59 @@
         <div class="logo">
             <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
         </div>
-        <h1>聚合投放工作台</h1>
-        <p class="subtitle">原型演示</p>
+        <h1>增长中台</h1>
+        <p class="subtitle">Growth Hub · 原型演示</p>
         <div class="cards">
-            <a class="card" href="dashboard.html">
-                <div class="card-icon dashboard">
-                    <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            <a class="card" href="intelligence.html">
+                <div class="card-top">
+                    <div class="card-icon intel">
+                        <svg width="22" height="22" fill="#fff" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    </div>
+                    <div>
+                        <h2>情报中心</h2>
+                        <span class="card-badge new">新增模块</span>
+                    </div>
                 </div>
-                <h2>数据看板</h2>
+                <p>行业情报聚合与竞品监控，AI 生成每日情报摘要，赛道追踪与异动提醒</p>
+            </a>
+            <a class="card" href="dashboard.html">
+                <div class="card-top">
+                    <div class="card-icon dashboard">
+                        <svg width="22" height="22" fill="#fff" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    </div>
+                    <div>
+                        <h2>数据看板</h2>
+                        <span class="card-badge ready">已完成</span>
+                    </div>
+                </div>
                 <p>大盘数据看板，多渠道数据聚合展示，支持双数据源对照分析</p>
             </a>
             <a class="card" href="workstation.html">
-                <div class="card-icon workstation">
-                    <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                <div class="card-top">
+                    <div class="card-icon workstation">
+                        <svg width="22" height="22" fill="#fff" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                    </div>
+                    <div>
+                        <h2>投放工作台</h2>
+                        <span class="card-badge ready">已完成</span>
+                    </div>
                 </div>
-                <h2>工作台</h2>
                 <p>广告投放管理工作台，支持多渠道层级穿透与批量操作</p>
             </a>
+            <a class="card" href="creator.html">
+                <div class="card-top">
+                    <div class="card-icon creator">
+                        <svg width="22" height="22" fill="#fff" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </div>
+                    <div>
+                        <h2>创作者管线</h2>
+                        <span class="card-badge new">新增模块</span>
+                    </div>
+                </div>
+                <p>创作任务看板与协作流程管理，支持内部/外部创作者全流程协同</p>
+            </a>
         </div>
-        <div class="footer">聚合投放工作台 &copy; 2026</div>
+        <div class="footer">增长中台 Growth Hub &copy; 2026</div>
     </div>
 </body>
 </html>

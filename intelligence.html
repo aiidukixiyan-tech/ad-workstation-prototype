@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>增长中台 - 情报中心</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F5F7FA; color: #1E293B; font-size: 14px; min-height: 100vh; }
+
+/* ===== Top Navigation ===== */
+.top-nav { background: linear-gradient(90deg, #1E1B4B, #312E81); height: 56px; display: flex; align-items: center; padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.nav-brand { display: flex; align-items: center; gap: 10px; margin-right: 40px; }
+.nav-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+.nav-title { color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+.nav-tabs { display: flex; gap: 4px; flex: 1; }
+.nav-tab-wrap { position: relative; }
+.nav-tab { color: rgba(255,255,255,0.6); padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 6px; transition: all 0.2s; position: relative; user-select: none; }
+.nav-tab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+.nav-tab.active { color: #fff; background: rgba(255,255,255,0.12); }
+.nav-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 2px; background: #fff; border-radius: 1px; }
+.nav-dropdown { position: absolute; top: 100%; left: 0; margin-top: 8px; background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); padding: 16px; min-width: 280px; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all 0.2s ease; z-index: 200; }
+.nav-tab-wrap:hover .nav-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-tab-wrap::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 12px; }
+.nav-dropdown-title { font-size: 11px; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; padding: 0 4px; }
+.nav-dropdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.nav-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: #334155; }
+.nav-dropdown-item:hover { background: #F5F3FF; }
+.nav-dropdown-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.nav-dropdown-icon.juliang { background: linear-gradient(135deg, #7580DF, #959EEB); }
+.nav-dropdown-icon.guangdiantong { background: linear-gradient(135deg, #45A898, #6DC4B4); }
+.nav-dropdown-icon.cili { background: linear-gradient(135deg, #D49560, #E5AD7B); }
+.nav-dropdown-text { font-size: 13px; font-weight: 500; }
+.nav-dropdown-desc { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+.nav-dropdown-list .nav-dropdown-item { grid-column: 1 / -1; }
+.nav-dropdown.wide { min-width: 360px; }
+.nav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.nav-icon { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 18px; position: relative; transition: color 0.2s; }
+.nav-icon:hover { color: #fff; }
+.nav-badge { position: absolute; top: -4px; right: -6px; width: 16px; height: 16px; background: #EF4444; border-radius: 50%; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+.nav-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #818CF8, #C084FC); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ===== Sub Tabs ===== */
+.sub-tabs { background: #fff; padding: 0 24px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; }
+.sub-tab { padding: 14px 20px; cursor: pointer; font-size: 14px; color: #64748B; font-weight: 500; position: relative; transition: color 0.2s; user-select: none; }
+.sub-tab:hover { color: #6366F1; }
+.sub-tab.active { color: #6366F1; font-weight: 600; }
+.sub-tab.active::after { content: ''; position: absolute; bottom: 0; left: 20px; right: 20px; height: 2px; background: #6366F1; border-radius: 1px; }
+
+/* ===== Content ===== */
+.content { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+/* ===== Intelligence Layout ===== */
+.intel-grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; margin-bottom: 16px; }
+.intel-grid-full { grid-template-columns: 1fr; }
+
+/* ===== AI Summary Card ===== */
+.summary-card { background: linear-gradient(135deg, #312E81, #4338CA); border-radius: 12px; padding: 20px; color: #fff; }
+.summary-card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.summary-card-title .ai-badge { font-size: 10px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.summary-card-subtitle { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+.summary-item { display: flex; gap: 10px; margin-bottom: 14px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+.summary-item:hover { background: rgba(255,255,255,0.14); }
+.summary-item:last-child { margin-bottom: 0; }
+.summary-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.summary-dot.hot { background: #EF4444; }
+.summary-dot.up { background: #10B981; }
+.summary-dot.warn { background: #F59E0B; }
+.summary-dot.info { background: #6366F1; }
+.summary-text { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.9); }
+.summary-text .hl { color: #A5B4FC; font-weight: 500; }
+.summary-time { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+/* ===== Feed Card ===== */
+.feed-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+.feed-header { padding: 16px 20px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+.feed-title { font-size: 15px; font-weight: 600; color: #1E293B; }
+.feed-filters { display: flex; gap: 8px; }
+.feed-filter-btn { padding: 4px 12px; font-size: 12px; border: 1px solid #E2E8F0; border-radius: 6px; background: #fff; color: #64748B; cursor: pointer; transition: all 0.2s; }
+.feed-filter-btn:hover, .feed-filter-btn.active { background: #6366F1; color: #fff; border-color: #6366F1; }
+.feed-list { padding: 0; }
+.feed-item { padding: 16px 20px; border-bottom: 1px solid #F8FAFC; display: flex; gap: 14px; cursor: pointer; transition: background 0.15s; }
+.feed-item:hover { background: #FAFBFF; }
+.feed-item:last-child { border-bottom: none; }
+.feed-item-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+.feed-item-icon.taptap { background: #E8F5E9; color: #2E7D32; }
+.feed-item-icon.qimai { background: #E3F2FD; color: #1565C0; }
+.feed-item-icon.competitor { background: #FFF3E0; color: #E65100; }
+.feed-item-icon.industry { background: #F3E5F5; color: #7B1FA2; }
+.feed-item-icon.alert { background: #FEF2F2; color: #DC2626; }
+.feed-item-body { flex: 1; min-width: 0; }
+.feed-item-title { font-size: 14px; font-weight: 500; color: #1E293B; margin-bottom: 4px; line-height: 1.5; }
+.feed-item-title .tag { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 3px; margin-right: 6px; font-weight: 600; vertical-align: middle; }
+.feed-item-title .tag-hot { background: #FEF2F2; color: #DC2626; }
+.feed-item-title .tag-new { background: #EFF6FF; color: #2563EB; }
+.feed-item-title .tag-up { background: #ECFDF5; color: #059669; }
+.feed-item-title .tag-down { background: #FFFBEB; color: #D97706; }
+.feed-item-desc { font-size: 12px; color: #94A3B8; line-height: 1.5; }
+.feed-item-meta { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.feed-item-time { font-size: 11px; color: #CBD5E1; }
+.feed-item-action { font-size: 11px; color: #6366F1; font-weight: 500; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+.feed-item:hover .feed-item-action { opacity: 1; }
+.feed-item-bookmark { margin-left: auto; color: #CBD5E1; cursor: pointer; font-size: 16px; transition: color 0.2s; }
+.feed-item-bookmark:hover { color: #F59E0B; }
+.feed-item-bookmark.saved { color: #F59E0B; }
+
+/* ===== Track Cards ===== */
+.track-section { margin-bottom: 16px; }
+.track-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.track-section-title { font-size: 15px; font-weight: 600; color: #1E293B; }
+.track-add-btn { padding: 5px 14px; border: 1px dashed #CBD5E1; border-radius: 8px; background: #fff; color: #94A3B8; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+.track-add-btn:hover { border-color: #6366F1; color: #6366F1; }
+.track-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.track-card { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+.track-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.10); transform: translateY(-2px); }
+.track-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.track-card:nth-child(1)::before { background: linear-gradient(90deg, #6366F1, #818CF8); }
+.track-card:nth-child(2)::before { background: linear-gradient(90deg, #10B981, #34D399); }
+.track-card:nth-child(3)::before { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+.track-card:nth-child(4)::before { background: linear-gradient(90deg, #EC4899, #F472B6); }
+.track-card-name { font-size: 14px; font-weight: 600; color: #1E293B; margin-bottom: 4px; }
+.track-card-games { font-size: 12px; color: #94A3B8; margin-bottom: 12px; }
+.track-card-metrics { display: flex; gap: 16px; }
+.track-metric { flex: 1; }
+.track-metric-label { font-size: 11px; color: #94A3B8; margin-bottom: 2px; }
+.track-metric-value { font-size: 16px; font-weight: 700; color: #1E293B; }
+.track-metric-change { font-size: 11px; font-weight: 500; margin-top: 2px; }
+.track-metric-change.up { color: #059669; }
+.track-metric-change.down { color: #DC2626; }
+
+/* ===== Competitor Table ===== */
+.competitor-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+.competitor-header { padding: 16px 20px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+.competitor-title { font-size: 15px; font-weight: 600; color: #1E293B; }
+.competitor-actions { display: flex; gap: 8px; }
+.comp-btn { padding: 5px 12px; border: 1px solid #E2E8F0; border-radius: 6px; background: #fff; color: #64748B; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+.comp-btn:hover { border-color: #6366F1; color: #6366F1; }
+.comp-btn.primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; border: none; }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: #F8FAFC; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #64748B; text-align: left; border-bottom: 1px solid #E2E8F0; white-space: nowrap; }
+tbody td { padding: 12px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #F1F5F9; white-space: nowrap; }
+tbody tr:hover { background: #F8FAFC; }
+tbody tr:last-child td { border-bottom: none; }
+.comp-game { display: flex; align-items: center; gap: 10px; }
+.comp-game-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; font-weight: 700; }
+.comp-game-name { font-weight: 500; }
+.comp-game-company { font-size: 11px; color: #94A3B8; }
+.comp-change { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 500; padding: 2px 6px; border-radius: 4px; }
+.comp-change.up { color: #059669; background: #ECFDF5; }
+.comp-change.down { color: #DC2626; background: #FEF2F2; }
+.comp-change.flat { color: #64748B; background: #F3F4F6; }
+.comp-bar { height: 6px; border-radius: 3px; background: #F1F5F9; overflow: hidden; min-width: 80px; }
+.comp-bar-fill { height: 100%; border-radius: 3px; }
+.trend-mini { display: flex; align-items: end; gap: 2px; height: 24px; }
+.trend-mini-bar { width: 4px; border-radius: 2px; background: #818CF8; opacity: 0.6; }
+
+/* ===== AI Assistant ===== */
+.ai-fab { position: fixed; bottom: 28px; right: 28px; z-index: 200; }
+.ai-fab-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99,102,241,0.4); transition: transform 0.2s, box-shadow 0.2s; }
+.ai-fab-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(99,102,241,0.5); }
+.ai-fab-btn svg { width: 26px; height: 26px; fill: #fff; }
+.ai-panel { position: absolute; bottom: 68px; right: 0; width: 380px; background: #fff; border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.15); overflow: hidden; display: none; }
+.ai-panel.open { display: block; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.ai-panel-header { background: linear-gradient(135deg, #6366F1, #8B5CF6); padding: 16px 20px; color: #fff; }
+.ai-panel-header h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.ai-panel-header p { font-size: 12px; opacity: 0.8; }
+.ai-panel-body { padding: 16px 20px; max-height: 320px; overflow-y: auto; }
+.ai-msg { display: flex; gap: 10px; margin-bottom: 16px; }
+.ai-msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ai-msg-avatar svg { width: 16px; height: 16px; fill: #fff; }
+.ai-msg-content { background: #F5F3FF; border-radius: 0 12px 12px 12px; padding: 10px 14px; font-size: 13px; color: #334155; line-height: 1.6; }
+.ai-msg-content .highlight { color: #6366F1; font-weight: 500; }
+.ai-panel-input { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #F1F5F9; }
+.ai-panel-input input { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; }
+.ai-panel-input input:focus { border-color: #6366F1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+.ai-panel-input button { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.ai-panel-input button svg { width: 18px; height: 18px; fill: #fff; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo">增</div>
+      <div class="nav-title">增长中台</div>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab-wrap">
+        <div class="nav-tab active">情报中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">情报中心</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item" style="background:#F5F3FF"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">总</div><div><div class="nav-dropdown-text">情报总览</div><div class="nav-dropdown-desc">AI摘要与行业热点聚合</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">追</div><div><div class="nav-dropdown-text">行业追踪</div><div class="nav-dropdown-desc">TapTap · 七麦 · 行业新闻</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)">竞</div><div><div class="nav-dropdown-text">竞品监控</div><div class="nav-dropdown-desc">竞品投放与活动追踪</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='dashboard.html'">数据看板</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">数据看板</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="dashboard.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">大</div><div><div class="nav-dropdown-text">大盘看板</div><div class="nav-dropdown-desc">全渠道数据汇总与趋势</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">包</div><div><div class="nav-dropdown-text">包体渠道看板</div><div class="nav-dropdown-desc">iOS / 安卓各渠道数据</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D4899C,#E0A5B4)">素</div><div><div class="nav-dropdown-text">素材效果看板</div><div class="nav-dropdown-desc">素材维度数据分析</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#64748B,#94A3B8)">自</div><div><div class="nav-dropdown-text">自定义看板</div><div class="nav-dropdown-desc">自由搭建个性化数据视图</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='workstation.html'">投放工作台</div>
+        <div class="nav-dropdown wide">
+          <div class="nav-dropdown-title">投放渠道</div>
+          <div class="nav-dropdown-grid">
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon juliang">巨</div><div><div class="nav-dropdown-text">巨量引擎</div><div class="nav-dropdown-desc">字节跳动 · 12个账户</div></div></a>
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon guangdiantong">腾</div><div><div class="nav-dropdown-text">腾讯广告</div><div class="nav-dropdown-desc">广点通 · 8个账户</div></div></a>
+            <a class="nav-dropdown-item" href="workstation.html"><div class="nav-dropdown-icon cili">磁</div><div><div class="nav-dropdown-text">磁力引擎</div><div class="nav-dropdown-desc">快手 · 6个账户</div></div></a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab" onclick="location.href='creator.html'">创作者管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">创作者管线</div>
+          <div class="nav-dropdown-list">
+            <a class="nav-dropdown-item" href="creator.html"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">任</div><div><div class="nav-dropdown-text">任务看板</div><div class="nav-dropdown-desc">创作任务管理与协作</div></div></a>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EC4899,#F472B6)">人</div><div><div class="nav-dropdown-text">创作者库</div><div class="nav-dropdown-desc">内部/外部创作者管理</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#10B981,#34D399)">效</div><div><div class="nav-dropdown-text">效果看板</div><div class="nav-dropdown-desc">创作者产出与效果分析</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">素材管线</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">素材管线</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#45A898,#6DC4B4)">库</div><div><div class="nav-dropdown-text">素材库</div><div class="nav-dropdown-desc">素材资产管理与检索</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#D49560,#E5AD7B)">工</div><div><div class="nav-dropdown-text">素材工具箱</div><div class="nav-dropdown-desc">三视图、热点切片等 AI 工具</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tab-wrap">
+        <div class="nav-tab">策略中心</div>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-title">策略中心</div>
+          <div class="nav-dropdown-list">
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#7580DF,#959EEB)">回</div><div><div class="nav-dropdown-text">虚拟回传策略</div><div class="nav-dropdown-desc">扣传 / 补报 / 档位配置</div></div></div>
+            <div class="nav-dropdown-item"><div class="nav-dropdown-icon" style="background:linear-gradient(135deg,#EF4444,#F87171)">警</div><div><div class="nav-dropdown-text">告警卡控规则</div><div class="nav-dropdown-desc">异常监控与自动化卡控</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" title="通知">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="nav-badge">5</span>
+      </div>
+      <div class="nav-avatar" title="张三">张</div>
+    </div>
+  </div>
+
+  <!-- Sub Tabs -->
+  <div class="sub-tabs">
+    <div class="sub-tab active">情报总览</div>
+    <div class="sub-tab">行业追踪</div>
+    <div class="sub-tab">竞品监控</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Top: AI Summary + Feed -->
+    <div class="intel-grid">
+      <!-- Left: AI Summary -->
+      <div class="summary-card">
+        <div class="summary-card-title">
+          <svg width="18" height="18" fill="#A5B4FC" viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg>
+          今日情报摘要
+          <span class="ai-badge">AI 生成</span>
+        </div>
+        <div class="summary-card-subtitle">基于行业数据和竞品动态自动生成 · 2026-04-15 09:30</div>
+
+        <div class="summary-item" v-for="s in summaries" :key="s.id">
+          <div :class="['summary-dot', s.type]"></div>
+          <div>
+            <div class="summary-text" v-html="s.text"></div>
+            <div class="summary-time">{{ s.time }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Feed -->
+      <div class="feed-card">
+        <div class="feed-header">
+          <div class="feed-title">行业热点 Feed</div>
+          <div class="feed-filters">
+            <div class="feed-filter-btn active">全部</div>
+            <div class="feed-filter-btn">TapTap</div>
+            <div class="feed-filter-btn">七麦</div>
+            <div class="feed-filter-btn">竞品</div>
+          </div>
+        </div>
+        <div class="feed-list">
+          <div class="feed-item" v-for="f in feedItems" :key="f.id">
+            <div :class="['feed-item-icon', f.source]">{{ f.icon }}</div>
+            <div class="feed-item-body">
+              <div class="feed-item-title">
+                <span :class="['tag', 'tag-' + f.tagType]" v-if="f.tag">{{ f.tag }}</span>
+                {{ f.title }}
+              </div>
+              <div class="feed-item-desc">{{ f.desc }}</div>
+              <div class="feed-item-meta">
+                <span class="feed-item-time">{{ f.time }}</span>
+                <span class="feed-item-action">查看详情 →</span>
+              </div>
+            </div>
+            <div :class="['feed-item-bookmark', { saved: f.saved }]" @click.stop="f.saved = !f.saved">{{ f.saved ? '★' : '☆' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Track Section -->
+    <div class="track-section">
+      <div class="track-section-header">
+        <div class="track-section-title">关注赛道概览</div>
+        <button class="track-add-btn">+ 添加赛道</button>
+      </div>
+      <div class="track-grid">
+        <div class="track-card" v-for="t in tracks" :key="t.name">
+          <div class="track-card-name">{{ t.name }}</div>
+          <div class="track-card-games">{{ t.games }}</div>
+          <div class="track-card-metrics">
+            <div class="track-metric">
+              <div class="track-metric-label">TapTap均分</div>
+              <div class="track-metric-value">{{ t.score }}</div>
+              <div :class="['track-metric-change', t.scoreDir]">{{ t.scoreChange }}</div>
+            </div>
+            <div class="track-metric">
+              <div class="track-metric-label">七麦排名</div>
+              <div class="track-metric-value">#{{ t.rank }}</div>
+              <div :class="['track-metric-change', t.rankDir]">{{ t.rankChange }}</div>
+            </div>
+            <div class="track-metric">
+              <div class="track-metric-label">投放热度</div>
+              <div class="track-metric-value">{{ t.heat }}</div>
+              <div :class="['track-metric-change', t.heatDir]">{{ t.heatChange }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Competitor Monitoring Table -->
+    <div class="competitor-card">
+      <div class="competitor-header">
+        <div class="competitor-title">竞品动态监控</div>
+        <div class="competitor-actions">
+          <button class="comp-btn">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 000-1.42l-2.34-2.34a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+            管理竞品
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>竞品游戏</th>
+              <th>TapTap评分</th>
+              <th>七麦排名</th>
+              <th>预估投放量</th>
+              <th>近7天趋势</th>
+              <th>最新动态</th>
+              <th>更新时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in competitors" :key="c.id">
+              <td>
+                <div class="comp-game">
+                  <div class="comp-game-icon" :style="{ background: c.color }">{{ c.abbr }}</div>
+                  <div>
+                    <div class="comp-game-name">{{ c.name }}</div>
+                    <div class="comp-game-company">{{ c.company }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span style="font-weight:600">{{ c.score }}</span>
+                <span :class="['comp-change', c.scoreDir]" style="margin-left:6px">{{ c.scoreChange }}</span>
+              </td>
+              <td>
+                <span style="font-weight:600">#{{ c.rank }}</span>
+                <span :class="['comp-change', c.rankDir]" style="margin-left:6px">{{ c.rankChange }}</span>
+              </td>
+              <td>
+                <div class="comp-bar"><div class="comp-bar-fill" :style="{ width: c.spendPct + '%', background: c.color }"></div></div>
+                <span style="font-size:12px;color:#64748B;margin-top:2px;display:block">{{ c.spend }}</span>
+              </td>
+              <td>
+                <div class="trend-mini">
+                  <div class="trend-mini-bar" v-for="(h, i) in c.trend" :key="i" :style="{ height: h + 'px', background: c.color }"></div>
+                </div>
+              </td>
+              <td style="max-width:200px;white-space:normal;line-height:1.5">
+                <span style="font-size:12px">{{ c.latestAction }}</span>
+              </td>
+              <td style="font-size:12px;color:#94A3B8">{{ c.updateTime }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Assistant -->
+  <div class="ai-fab">
+    <div class="ai-panel" :class="{ open: aiOpen }">
+      <div class="ai-panel-header">
+        <h3>AI 情报助手</h3>
+        <p>行业洞察 · 竞品分析 · 趋势预判</p>
+      </div>
+      <div class="ai-panel-body">
+        <div class="ai-msg">
+          <div class="ai-msg-avatar"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg></div>
+          <div class="ai-msg-content">
+            检测到竞品<span class="highlight">「弹壳特攻队」</span>近3天投放量激增 <span class="highlight">45%</span>，主要集中在巨量引擎渠道，素材以竖版游戏实录为主。建议关注其投放策略变化。
+          </div>
+        </div>
+        <div class="ai-msg">
+          <div class="ai-msg-avatar"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg></div>
+          <div class="ai-msg-content">
+            动作手游赛道本周 TapTap 热度上升 <span class="highlight">12%</span>，可能与近期多款新游上线有关。「忍者必须死3」评分稳定在 8.2，建议抓住赛道热度窗口期加大投放。
+          </div>
+        </div>
+      </div>
+      <div class="ai-panel-input">
+        <input placeholder="输入问题，例如：分析动作手游赛道近期趋势" />
+        <button><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+    <button class="ai-fab-btn" @click="aiOpen = !aiOpen">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1.27A7 7 0 0113 22h-2a7 7 0 01-6.73-3H3a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zm-1 9a5 5 0 00-5 5 5 5 0 005 5h2a5 5 0 005-5 5 5 0 00-5-5h-2zm-1 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue;
+createApp({
+  data() {
+    return {
+      aiOpen: false,
+      summaries: [
+        { id: 1, type: 'hot', text: '竞品<span class="hl">「弹壳特攻队」</span>投放量激增45%，巨量引擎渠道为主，素材风格偏竖版游戏实录。', time: '2小时前' },
+        { id: 2, type: 'up', text: '「忍者必须死3」TapTap评分回升至<span class="hl">8.2分</span>，近7天下载量环比增长18%。', time: '3小时前' },
+        { id: 3, type: 'warn', text: '动作手游赛道七麦免费榜竞争加剧，<span class="hl">3款新游</span>进入Top20，建议关注素材差异化。', time: '5小时前' },
+        { id: 4, type: 'info', text: '放置类赛道整体投放热度下降<span class="hl">12%</span>，多家厂商缩减预算，可能存在抄底窗口。', time: '6小时前' },
+      ],
+      feedItems: [
+        { id: 1, source: 'taptap', icon: 'T', tag: '热门', tagType: 'hot', title: '「忍者必须死3」4月版本更新后TapTap评分回升至8.2', desc: '新版本增加了PVP模式和赛季系统，玩家社区反馈积极，5星好评率提升至62%', time: '09:15', saved: true },
+        { id: 2, source: 'competitor', icon: '竞', tag: '异动', tagType: 'down', title: '弹壳特攻队投放量近3日激增45%，集中在巨量引擎', desc: '主要素材类型为竖版游戏实录和达人推荐，预估日消耗从120W提升至175W', time: '08:40', saved: false },
+        { id: 3, source: 'qimai', icon: '七', tag: '上升', tagType: 'up', title: '七麦iOS免费榜动作手游：3款新游进入Top20', desc: '「无尽冬日」升至#8，「幻塔2」新入榜#15，「超时空淘宝」回升至#19', time: '08:20', saved: false },
+        { id: 4, source: 'industry', icon: '业', tag: '新闻', tagType: 'new', title: '字节跳动Hyperhouse项目最新进展：AI辅助游戏内容创作工具内测', desc: '据知情人士透露，该工具可自动生成游戏推广短视频，预计Q3开放测试', time: '07:50', saved: false },
+        { id: 5, source: 'taptap', icon: 'T', tag: null, tagType: '', title: 'TapTap放置类游戏周榜：「无尽的拉格朗日」重回前三', desc: '得益于跨界联动活动，周下载量环比增长35%，评分维持7.8', time: '昨日 22:00', saved: false },
+        { id: 6, source: 'competitor', icon: '竞', tag: '异动', tagType: 'down', title: '「明日之后」磁力引擎投放缩减，预估下降30%', desc: '可能与版本过渡期有关，腾讯广告渠道投放量保持稳定', time: '昨日 18:30', saved: true },
+      ],
+      tracks: [
+        { name: '动作手游', games: '忍者必须死3 等12款', score: '7.8', scoreChange: '+0.2', scoreDir: 'up', rank: 3, rankChange: '↑2', rankDir: 'up', heat: '高', heatChange: '+12%', heatDir: 'up' },
+        { name: '放置类', games: '无尽的拉格朗日 等8款', score: '7.2', scoreChange: '-0.1', scoreDir: 'down', rank: 7, rankChange: '↓1', rankDir: 'down', heat: '中', heatChange: '-8%', heatDir: 'down' },
+        { name: '二次元', games: '幻塔2 等15款', score: '8.1', scoreChange: '+0.3', scoreDir: 'up', rank: 5, rankChange: '↑3', rankDir: 'up', heat: '高', heatChange: '+22%', heatDir: 'up' },
+        { name: '休闲竞技', games: '蛋仔派对 等6款', score: '6.9', scoreChange: '0', scoreDir: 'flat', rank: 12, rankChange: '-', rankDir: 'flat', heat: '低', heatChange: '-3%', heatDir: 'down' },
+      ],
+      competitors: [
+        { id: 1, name: '弹壳特攻队', company: 'Habby', abbr: '弹', color: '#E65100', score: '7.6', scoreChange: '+0.3', scoreDir: 'up', rank: 5, rankChange: '↑3', rankDir: 'up', spend: '~175W/天', spendPct: 85, trend: [12,15,14,18,20,22,24], latestAction: '新增竖版游戏实录素材批量投放', updateTime: '10分钟前' },
+        { id: 2, name: '无尽冬日', company: '朝夕光年', abbr: '冬', color: '#1565C0', score: '8.4', scoreChange: '+0.5', scoreDir: 'up', rank: 8, rankChange: '↑12', rankDir: 'up', spend: '~95W/天', spendPct: 46, trend: [6,8,10,14,18,20,16], latestAction: '全平台上线推广，巨量+腾讯双渠道', updateTime: '30分钟前' },
+        { id: 3, name: '幻塔2', company: '完美世界', abbr: '幻', color: '#7B1FA2', score: '7.9', scoreChange: '-0.1', scoreDir: 'down', rank: 15, rankChange: 'NEW', rankDir: 'up', spend: '~210W/天', spendPct: 100, trend: [0,0,4,12,20,24,22], latestAction: '新游上线，全渠道买量冲榜', updateTime: '1小时前' },
+        { id: 4, name: '超时空淘宝', company: '心动网络', abbr: '超', color: '#2E7D32', score: '8.0', scoreChange: '+0.1', scoreDir: 'up', rank: 19, rankChange: '↑5', rankDir: 'up', spend: '~68W/天', spendPct: 33, trend: [10,9,8,11,12,14,14], latestAction: '达人合作推广增加，抖音为主', updateTime: '2小时前' },
+        { id: 5, name: '明日之后', company: '网易', abbr: '明', color: '#C62828', score: '6.8', scoreChange: '-0.2', scoreDir: 'down', rank: 22, rankChange: '↓4', rankDir: 'down', spend: '~45W/天', spendPct: 22, trend: [18,16,14,12,10,8,8], latestAction: '磁力引擎渠道缩减30%投放', updateTime: '3小时前' },
+      ],
+    }
+  },
+}).mount('#app');
+</script>
+</body>
+</html>
